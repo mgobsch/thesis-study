@@ -253,8 +253,8 @@ const SCENARIOS = {
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain"],
     explanations:{
-      C0:{en:"The Status Light is orange and not green because Occupancy of meeting room is Detected, Contact Sensor Meeting Room Opening is off.",
-          de:"Das Statuslicht ist orange und nicht grün, weil Belegung des Besprechungsraums ist Erkannt, Kontaktsensor Öffnung Besprechungsraum ist aus."},
+      C0:{en:"The meeting room status light is orange and not green because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
+          de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht grün, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
       WIN:{en:"Because the door sensor reported the meeting‑room door as closed and the motion sensor detected presence, the “Meeting Room Occupied” rule’s conditions were satisfied, so its action set the status light to orange. The “Meeting room not occupied” rule requires the motion sensor to be clear, which wasn’t the case, so it didn’t fire and the light stayed orange instead of green.",
            de:"Weil der Türsensor die Tür des Besprechungsraums als geschlossen gemeldet hat und der Bewegungsmelder Anwesenheit erkannt hat, waren die Bedingungen der Regel „Besprechungsraum belegt“ erfüllt, sodass ihre Aktion das Statuslicht auf Orange gesetzt hat. Die Regel „Besprechungsraum nicht belegt“ setzt voraus, dass der Bewegungsmelder nichts erkennt, was nicht der Fall war; deshalb hat sie nicht ausgelöst und das Licht blieb orange statt grün."}
     },
@@ -271,8 +271,8 @@ const SCENARIOS = {
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain"],
     explanations:{
-      C0:{en:"The Status Light is orange and not blue because Occupancy of meeting room is Detected, Contact Sensor Meeting Room Opening is off.",
-          de:"Das Statuslicht ist orange und nicht blau, weil Belegung des Besprechungsraums ist Erkannt, Kontaktsensor Öffnung Besprechungsraum ist aus."},
+      C0:{en:"The meeting room status light is orange and not blue because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
+          de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht blau, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
       WIN:{en:"Because the door was closed and motion was detected, the system treated the meeting room as occupied and ran the rule that sets the status light to orange. Even though it was rainy at lunch, the occupancy rule takes priority, so the light stayed orange instead of turning blue.",
            de:"Weil die Tür geschlossen war und Bewegung erkannt wurde, hat das System den Besprechungsraum als belegt behandelt und die Regel ausgeführt, die das Statuslicht auf Orange setzt. Obwohl es mittags regnerisch war, hat die Belegungsregel Vorrang, deshalb blieb das Licht orange, statt blau zu werden."},
       // GPT-OSS + P1 + C2, Trial 2 (foil: Meeting Room Not Occupied). Only shown when TC2_THREE_EXPLANATIONS is true.
@@ -292,8 +292,8 @@ const SCENARIOS = {
     ask:{en:"Why is the status light off?", de:"Warum ist das Statuslicht aus?"},
     foils:["notoccupied","occupied","rain","sunny","danger","closing"],   // nothing fired: all status-light rules are candidates
     explanations:{
-      C0:{en:"The Status Light did not start because not all preconditions were met: No Motion in meeting room is clear, Contact Sensor Meeting Room Opening is on.",
-          de:"Das Statuslicht ist nicht gestartet, weil nicht alle Vorbedingungen erfüllt waren: Keine Bewegung im Besprechungsraum ist frei, Kontaktsensor Öffnung Besprechungsraum ist an."},
+      C0:{en:"The meeting room status light is off and not green because not all preconditions are met: No motion in the meeting room, and the Contact Sensor Meeting Room is open.",
+          de:"Die Statusanzeige des Besprechungsraums ist ausgeschaltet und nicht grün, weil nicht alle Voraussetzungen erfüllt sind: keine Bewegung im Besprechungsraum erkannt, und der Kontaktsensor des Besprechungsraums ist offen."},
       WIN:{en:"The “Meeting room not occupied” rule only activates when the door sensor registers a new “on” (opening) event and then sees no motion; at 08:00 the door was already open and no fresh opening trigger occurred, so the rule never fired. Because the rule didn’t run, the meeting‑room status light stayed off.",
            de:"Die Regel „Besprechungsraum nicht belegt“ wird nur aktiv, wenn der Türsensor ein neues „on“-Ereignis (Öffnen) registriert und danach keine Bewegung erkennt; um 08:00 war die Tür bereits offen und es gab kein neues Öffnungsereignis, deshalb hat die Regel nie ausgelöst. Weil die Regel nicht lief, blieb das Statuslicht des Besprechungsraums aus."}
     },
