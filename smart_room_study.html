@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Office Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4; --panel:#FFFFFF; --ink:#1C2733; --muted:#5B6877; --line:#D3DAE2;
+  --accent:#2F5D8A; --accent-ink:#FFFFFF;
+  --l-green:#2E9E5B; --l-orange:#E8871E; --l-blue:#2F7FD8; --l-off:#8A94A0;
+  --wall:#E3E8EE; --wall2:#D2DAE3; --floor:#C4CCD6; --wood:#A5835F; --wood2:#7E6146; --room:#8E9BA8; --screen:#3A4756;
+  --note:#FFF4BF; --note-line:#E9D98A; --note-ink:#3B3413;
+  --ok:#2E7D4F; --err:#B3261E; --you:#F2C94C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --bg:#161C23; --panel:#1F2730; --ink:#E8EDF2; --muted:#9AA7B4; --line:#34404C;
+  --accent:#7FB0E0; --accent-ink:#10202F; --wall:#2A333D; --wall2:#323D49; --floor:#222A33; --wood:#8A6C4E; --wood2:#6A523B; --room:#56626F; --screen:#11161C;
+  --note:#3A3521; --note-line:#5A5230; --note-ink:#F3EBC4; --ok:#6FCF97; --err:#F2B8B5; }}
+:root[data-theme="dark"]{
+  --bg:#161C23; --panel:#1F2730; --ink:#E8EDF2; --muted:#9AA7B4; --line:#34404C;
+  --accent:#7FB0E0; --accent-ink:#10202F; --wall:#2A333D; --wall2:#323D49; --floor:#222A33; --wood:#8A6C4E; --wood2:#6A523B; --room:#56626F; --screen:#11161C;
+  --note:#3A3521; --note-line:#5A5230; --note-ink:#F3EBC4; --ok:#6FCF97; --err:#F2B8B5; }
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:17px;line-height:1.55}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:780px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:12px}
+.brand{font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--l-green);box-shadow:0 0 10px var(--l-green)}
+.prog{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:40px}
+.prog>i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.lang{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.lang button{border:0;background:transparent;color:var(--muted);padding:5px 10px;font:inherit;font-size:14px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+main{max-width:780px;margin:0 auto;padding:26px 18px 100px}
+h1{font-size:2rem;line-height:1.2;margin:.2em 0 .5em}
+h2{font-size:1.45rem;line-height:1.25;margin:.2em 0 .6em}
+h3{font-size:1.1rem;margin:1.2em 0 .4em}
+p{margin:.5em 0 .9em;max-width:68ch}
+.muted{color:var(--muted)}
+.eyebrow{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.stack>*+*{margin-top:14px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:12px 20px;background:var(--accent);color:var(--accent-ink);cursor:pointer;text-decoration:none;display:inline-block}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.small{padding:6px 12px;font-size:15px}
+.nav{display:flex;justify-content:flex-end;gap:10px;margin-top:26px;align-items:center}
+.nav .hint{margin-right:auto;color:var(--err);font-size:15px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+label.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--panel)}
+label.opt+label.opt{margin-top:8px}
+label.opt input{margin-top:5px}
+fieldset{border:0;padding:0;margin:0 0 18px}
+legend{font-weight:700;margin-bottom:8px;padding:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;padding:8px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.controls{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;align-items:center}
+.controls .lbl{font-weight:700;margin-right:8px}
+/* scene */
+.scene{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:var(--wall)}
+.scene svg{display:block;width:100%;height:auto}
+.scene text{font-family:"Atkinson Hyperlegible",system-ui,sans-serif;fill:var(--ink)}
+[data-hot]{cursor:pointer;outline:none}
+[data-hot] .ring{fill:none;stroke:var(--accent);stroke-width:4;opacity:.9}
+[data-hot].done .ring{stroke:var(--ok)}
+[data-hot]:not(.done) .ring{animation:pulse 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+[data-hot]:focus-visible .ring{stroke-width:7}
+@keyframes pulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.35);opacity:0}}
+@media (prefers-reduced-motion:reduce){[data-hot] .ring{animation:none!important}.prog>i{transition:none}}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:4px 12px;font-size:15px}
+.swatch{width:12px;height:12px;border-radius:50%;flex:none;display:inline-block;vertical-align:middle}
+/* rule (top to bottom) */
+.rulebox{display:flex;flex-direction:column}
+.rulebox .rname{font-weight:700;margin-bottom:6px}
+.rstep{display:flex;flex-direction:column}
+.rstep .k{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.rarrow{color:var(--muted);line-height:1;margin:3px 0 3px 4px;font-size:18px}
+.rrow{display:flex;align-items:center;gap:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.rule{border-left:6px solid var(--c)}
+.person{display:flex;gap:14px;align-items:flex-start}
+.person svg{width:72px;height:72px;flex:none}
+.story{font-size:1.1rem}
+/* notes (cheat sheet) */
+.notes{background:var(--note);color:var(--note-ink);border:1px solid var(--note-line);border-radius:4px;box-shadow:0 6px 16px rgba(0,0,0,.14);padding:16px 16px 20px}
+.notes h3{margin:0 0 8px;font-size:1.05rem}
+.notes .pin{width:14px;height:14px;border-radius:50%;background:var(--err);margin:-6px auto 8px;box-shadow:0 2px 3px rgba(0,0,0,.3)}
+.notes .sec{border-top:1px dashed var(--note-line);padding-top:10px;margin-top:10px}
+.notes .rstep .k,.notes .rarrow{color:inherit;opacity:.7}
+.notes .nrule{padding:8px 0;border-bottom:1px dashed var(--note-line)}
+.notes .nrule:last-child{border-bottom:0}
+.notes .own{font-size:14px;margin-top:4px}
+.notes-head{display:flex;justify-content:space-between;align-items:center}
+.notes-close{display:none}
+#notes{display:none}
+body.notes-on #notes{display:block}
+@media (min-width:1100px){
+  body.notes-on{padding-right:350px}
+  body.notes-on #notes{position:fixed;right:18px;top:calc(env(safe-area-inset-top,0px) + 70px);bottom:18px;width:320px;overflow:auto;z-index:10}
+  .notes-tab{display:none!important}
+}
+@media (max-width:1099px){
+  body.notes-on #notes{position:fixed;left:8px;right:8px;bottom:0;max-height:78vh;overflow:auto;z-index:30;transform:translateY(105%);transition:transform .25s;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));border-radius:12px 12px 0 0}
+  body.notes-on #notes.open{transform:none}
+  .notes-close{display:inline-block}
+  .notes-tab{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:25;background:var(--note);color:var(--note-ink);border:1px solid var(--note-line);border-radius:22px;padding:10px 20px;font:inherit;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.2);cursor:pointer}
+}
+@media (prefers-reduced-motion:reduce){#notes{transition:none!important}}
+.notes-tab{display:none}
+body.notes-on .notes-tab{display:block}
+.flash{animation:flash 1s ease 2}
+.notes-hint{position:fixed;z-index:40;background:var(--panel);color:var(--ink);border:3px solid #D92D20;border-radius:10px;padding:12px 14px;max-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.notes-hint p{margin:0 0 8px;font-size:15px}
+.hint-arrow{position:absolute;width:0;height:0;border:12px solid transparent}
+body.hinting #notes{outline:4px solid #D92D20;outline-offset:4px;animation:ring 1.2s ease-in-out infinite}
+body.hinting .notes-tab{outline:4px solid #D92D20;outline-offset:3px;animation:ring 1.2s ease-in-out infinite}
+@keyframes ring{50%{outline-color:rgba(217,45,32,.25);outline-offset:9px}}
+@media (min-width:1100px){.notes-hint{right:360px;top:calc(env(safe-area-inset-top,0px) + 110px)}
+  .hint-arrow{right:-27px;top:18px;border-left-color:#D92D20}}
+@media (max-width:1099px){.notes-hint{right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .hint-arrow{bottom:-27px;right:30px;border-top-color:#D92D20}}
+@media (prefers-reduced-motion:reduce){body.hinting #notes,body.hinting .notes-tab{animation:none}}
+@keyframes flash{50%{box-shadow:0 0 0 6px var(--accent)}}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.msg{max-width:92%;padding:10px 14px;border-radius:14px}
+.msg.bot{background:var(--panel);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--accent);color:var(--accent-ink);align-self:flex-end;border-bottom-right-radius:4px}
+.msg .who{font-size:13px;font-weight:700;opacity:.75;display:block}
+/* ranking (tiles into numbered places) */
+.rank-area{margin-top:12px}
+.zone-lbl{font-size:14px;font-weight:700;color:var(--muted);margin:10px 0 6px}
+.pool{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;padding:8px;border:2px dashed var(--line);border-radius:10px;background:var(--bg)}
+.pool.empty::after{content:attr(data-empty);color:var(--muted);font-size:14px;align-self:center;padding:0 6px}
+.slots{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.slot{display:flex;align-items:center;gap:10px;min-height:48px;border:2px dashed var(--line);border-radius:10px;padding:5px 8px;background:var(--panel)}
+.slot .no{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;font-size:15px}
+.slot .cap{font-size:13px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.slot.filled{border-style:solid}
+.tile{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:7px 12px;font:inherit;font-size:15px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.tile.sel{outline:3px solid var(--accent);outline-offset:1px}
+.tile.ghost{position:fixed;z-index:50;pointer-events:none;box-shadow:0 8px 20px rgba(0,0,0,.3);cursor:grabbing}
+.tile.src{opacity:.35}
+.drop-hi{border-color:var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.locked .tile{cursor:default}
+.yours{display:inline-block;font-size:12px;font-weight:700;background:var(--you);color:#3B3413;border-radius:4px;padding:0 6px}
+.lockmsg{margin-top:10px;font-weight:700;color:var(--ok)}
+/* rating */
+.answer{border-top:6px solid var(--accent)}
+.answer.b{border-top-color:var(--muted)}
+.answer blockquote{margin:0 0 12px;padding:0;font-size:1.05rem}
+.lik{margin:10px 0}
+.lik .q{font-size:15px;margin-bottom:4px}
+.pills{display:flex;gap:6px}
+.pills label{flex:1;min-width:40px;text-align:center;border:1px solid var(--line);border-radius:6px;padding:6px 0;cursor:pointer;font-size:15px;background:var(--panel);position:relative}
+.pills input{position:absolute;opacity:0;pointer-events:none}
+.pills label:has(input:checked){background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.pills label:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:2px}
+.scale{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+textarea{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
+.feedback{margin-top:8px;font-size:15px}
+.feedback.ok{color:var(--ok)} .feedback.no{color:var(--err)}
+details.debug{margin-top:30px;font-size:13px}
+details.debug pre{white-space:pre-wrap;overflow-x:auto;max-height:300px;background:var(--panel);border:1px solid var(--line);padding:10px;border-radius:8px}
+@media (max-width:560px){h1{font-size:1.6rem}.brand span:last-child{display:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brand"><span class="dot" aria-hidden="true"></span><span id="brand"></span></div>
+  <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="progbar"><i id="prog"></i></div>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="en">EN</button><button type="button" data-lang="de">DE</button>
+  </div>
+</div></header>
+<main id="app" aria-live="polite"></main>
+<aside id="notes" class="notes" aria-label="Office notes"></aside>
+<button type="button" class="notes-tab" id="notes-tab"></button>
+<div id="notes-hint" class="notes-hint" role="status" hidden></div>
+
+<script>
+/* =====================================================================
+   1) STUDY SETTINGS — edit freely
+   ===================================================================== */
+const SETTINGS = {
+  TEST_MODE: true,          // true = shows the collected data on the end screen (set false for the real study)
+  SURVEY_RETURN_URL: "",    // optional link at the end ("" = no button)
+  // Web-app URL of the Google Apps Script (see ANLEITUNG_Google_Tabelle.md). "" = do not send.
+  SAVE_URL: "",
+  // Extra context in the office notes:
+  //   "basic" = owners only (current choice)
+  //   "all"   = owners + how often each rule was fired / explained in the past 90 days
+  //   "split" = each participant is randomly assigned "all" or "basic"
+  CONTEXT_MODE: "basic",
+};
+
+/* 2) RULE STATISTICS (past 90 days, from system_data_summary.json) — only shown when CONTEXT_MODE is "all" */
+const STATS = {
+  notoccupied:{ran:65, explained:{Alice:3, Bob:0}},
+  occupied:   {ran:66, explained:{Alice:1, Bob:0}},
+  rain:       {ran:4,  explained:{Alice:4, Bob:8}},
+  sunny:      {ran:86, explained:{Alice:2, Bob:2}},
+  danger:     {ran:1,  explained:{Alice:0, Bob:0}},
+  closing:    {ran:90, explained:{Alice:0, Bob:0}},
+};
+
+/* =====================================================================
+   3) RULES — every rule that changes the status light
+      when = "Starts when", only = "Only if" (null = none), c = resulting light colour
+   ===================================================================== */
+const LIGHT = { green:"var(--l-green)", orange:"var(--l-orange)", blue:"var(--l-blue)", off:"var(--l-off)" };
+const RULES = {
+  notoccupied:{c:"green", owner:"Alice",
+    en:{name:"Meeting Room Not Occupied", when:"the meeting-room door opens", only:"nobody is moving inside the meeting room"},
+    de:{name:"Besprechungsraum nicht belegt", when:"die Tür des Besprechungsraums aufgeht", only:"sich niemand im Besprechungsraum bewegt"}},
+  occupied:{c:"orange", owner:"Alice",
+    en:{name:"Meeting Room Occupied", when:"the meeting-room door closes", only:"someone is moving inside the meeting room"},
+    de:{name:"Besprechungsraum belegt", when:"die Tür des Besprechungsraums zugeht", only:"sich jemand im Besprechungsraum bewegt"}},
+  rain:{c:"blue", owner:"Bob",
+    en:{name:"Rain at Lunch", when:"the forecast says rain", only:"it is lunchtime (11:00–13:00)"},
+    de:{name:"Regen zur Mittagszeit", when:"die Vorhersage Regen meldet", only:"es Mittagszeit ist (11:00–13:00)"}},
+  sunny:{c:"orange", owner:"Bob",
+    en:{name:"Sunny at Lunch", when:"the forecast says sun", only:"it is lunchtime (11:00–13:00)"},
+    de:{name:"Sonne zur Mittagszeit", when:"die Vorhersage Sonne meldet", only:"es Mittagszeit ist (11:00–13:00)"}},
+  danger:{c:"orange", owner:"Alice", extra:{en:" and the fan runs on high", de:" und der Lüfter läuft auf hoch"},
+    en:{name:"Danger", when:"smoke, CO₂ or a fire alarm is detected", only:"it is between 08:00 and 18:00"},
+    de:{name:"Gefahr", when:"Rauch, CO₂ oder ein Feueralarm erkannt wird", only:"es zwischen 08:00 und 18:00 ist"}},
+  closing:{c:"off", owner:"Alice",
+    en:{name:"Closing Time", when:"it is 18:00", only:null},
+    de:{name:"Feierabend", when:"es 18:00 ist", only:null}},
+};
+
+/* =====================================================================
+   4) SCENARIOS — story (what the persona knows), facts, candidate foils, explanations
+   ===================================================================== */
+const SCENARIOS = {
+  TC1: {
+    person:"Alice", colleague:true, group:true, time:"12:08", weather:"rain", door:"closed", full:true, light:"orange",
+    story:{en:"You are Alice. It is 12:08. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door.",
+           de:"Du bist Alice. Es ist 12:08 Uhr. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür."},
+    ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
+    foils:["notoccupied","rain"],
+    explanations:{
+      C0:{en:"The Status Light is orange and not green because Occupancy of meeting room is Detected, Contact Sensor Meeting Room Opening is off.",
+          de:"Das Statuslicht ist orange und nicht grün, weil Belegung des Besprechungsraums ist Erkannt, Kontaktsensor Öffnung Besprechungsraum ist aus."},
+      WIN:{en:"Because the door sensor reported the meeting‑room door as closed and the motion sensor detected presence, the “Meeting Room Occupied” rule’s conditions were satisfied, so its action set the status light to orange. The “Meeting room not occupied” rule requires the motion sensor to be clear, which wasn’t the case, so it didn’t fire and the light stayed orange instead of green.",
+           de:"Weil der Türsensor die Tür des Besprechungsraums als geschlossen gemeldet hat und der Bewegungsmelder Anwesenheit erkannt hat, waren die Bedingungen der Regel „Besprechungsraum belegt“ erfüllt, sodass ihre Aktion das Statuslicht auf Orange gesetzt hat. Die Regel „Besprechungsraum nicht belegt“ setzt voraus, dass der Bewegungsmelder nichts erkennt, was nicht der Fall war; deshalb hat sie nicht ausgelöst und das Licht blieb orange statt grün."}
+    },
+    mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
+      {en:"The door is closed and movement was detected in the meeting room.", de:"Die Tür ist zu und im Besprechungsraum wurde Bewegung erkannt."},
+      {en:"It is lunchtime and the forecast says rain.", de:"Es ist Mittagszeit und die Vorhersage meldet Regen."},
+      {en:"It is lunchtime and the forecast says sun.", de:"Es ist Mittagszeit und die Vorhersage meldet Sonne."},
+      {en:"Smoke was detected and it is between 08:00 and 18:00.", de:"Es wurde Rauch erkannt und es ist zwischen 8 und 18 Uhr."}]}
+  },
+  TC2: {
+    person:"Bob", colleague:true, group:true, time:"12:10", weather:"rain", door:"closed", full:true, light:"orange",
+    story:{en:"You are Bob. You created a rule that turns the status light blue when rain is forecast at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
+           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn zur Mittagszeit Regen vorhergesagt ist – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
+    ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
+    foils:["notoccupied","rain"],
+    explanations:{
+      C0:{en:"The Status Light is orange and not blue because Occupancy of meeting room is Detected, Contact Sensor Meeting Room Opening is off.",
+          de:"Das Statuslicht ist orange und nicht blau, weil Belegung des Besprechungsraums ist Erkannt, Kontaktsensor Öffnung Besprechungsraum ist aus."},
+      WIN:{en:"Because the door was closed and motion was detected, the system treated the meeting room as occupied and ran the rule that sets the status light to orange. Even though it was rainy at lunch, the occupancy rule takes priority, so the light stayed orange instead of turning blue.",
+           de:"Weil die Tür geschlossen war und Bewegung erkannt wurde, hat das System den Besprechungsraum als belegt behandelt und die Regel ausgeführt, die das Statuslicht auf Orange setzt. Obwohl es mittags regnerisch war, hat die Belegungsregel Vorrang, deshalb blieb das Licht orange, statt blau zu werden."}
+    },
+    mcq:{ q:{en:"According to the explanations, which rule turned the status light orange?", de:"Welche Regel hat das Statuslicht laut den Erklärungen orange geschaltet?"}, correct:1, opts:[
+      {en:"Rain at Lunch", de:"Regen zur Mittagszeit"},
+      {en:"Meeting Room Occupied", de:"Besprechungsraum belegt"},
+      {en:"Sunny at Lunch", de:"Sonne zur Mittagszeit"},
+      {en:"Danger", de:"Gefahr"}]}
+  },
+  TC3: {
+    person:"Alice", colleague:false, time:"08:00", weather:"sun", door:"crack", full:false, light:"off",
+    story:{en:"You are Alice. It is 08:00 in the morning and you have just arrived at the office. On the way to your desk you walk past the meeting room. The door is slightly open. You look at the status light above the door.",
+           de:"Du bist Alice. Es ist 8:00 Uhr morgens und du bist gerade im Büro angekommen. Auf dem Weg zu deinem Schreibtisch gehst du am Besprechungsraum vorbei. Die Tür ist einen Spalt offen. Du schaust auf das Statuslicht über der Tür."},
+    ask:{en:"Why is the status light off?", de:"Warum ist das Statuslicht aus?"},
+    foils:["notoccupied","occupied","rain","sunny","danger","closing"],   // nothing fired: all status-light rules are candidates
+    explanations:{
+      C0:{en:"The Status Light did not start because not all preconditions were met: No Motion in meeting room is clear, Contact Sensor Meeting Room Opening is on.",
+          de:"Das Statuslicht ist nicht gestartet, weil nicht alle Vorbedingungen erfüllt waren: Keine Bewegung im Besprechungsraum ist frei, Kontaktsensor Öffnung Besprechungsraum ist an."},
+      WIN:{en:"The “Meeting room not occupied” rule only activates when the door sensor registers a new “on” (opening) event and then sees no motion; at 08:00 the door was already open and no fresh opening trigger occurred, so the rule never fired. Because the rule didn’t run, the meeting‑room status light stayed off.",
+           de:"Die Regel „Besprechungsraum nicht belegt“ wird nur aktiv, wenn der Türsensor ein neues „on“-Ereignis (Öffnen) registriert und danach keine Bewegung erkennt; um 08:00 war die Tür bereits offen und es gab kein neues Öffnungsereignis, deshalb hat die Regel nie ausgelöst. Weil die Regel nicht lief, blieb das Statuslicht des Besprechungsraums aus."}
+    },
+    mcq:{ q:{en:"According to the explanations, why is the status light off?", de:"Warum ist das Statuslicht laut den Erklärungen aus?"}, correct:0, opts:[
+      {en:"“Meeting Room Not Occupied” did not start, because the door was not newly opened.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil die Tür nicht neu geöffnet wurde."},
+      {en:"“Meeting Room Not Occupied” did not start, because movement was detected in the room.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil im Raum Bewegung erkannt wurde."},
+      {en:"“Meeting Room Not Occupied” did not start, because the door sensor has failed.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil der Türsensor ausgefallen ist."},
+      {en:"“Rain at Lunch” did not start, because it is not lunchtime yet.", de:"„Regen zur Mittagszeit“ ist nicht gestartet, weil noch keine Mittagszeit ist."}]}
+  }
+};
+
+/* =====================================================================
+   5) TEXTS (EN / DE)
+   ===================================================================== */
+const T = {
+ en:{
+  brand:"Smart office study", next:"Continue", back:"Back", missing:"Please answer all questions to continue.",
+  start_h:"Welcome to the smart office", start_p:"In this study you will look at a smart office, where sensors and rules control things automatically. You will take on the role of Alice or Bob, two people who work there, and see situations from their point of view. The study takes about 15–20 minutes.",
+  start_p2:"Your answers are anonymous and only used for a bachelor's thesis at the University of Cologne. You can stop at any time.",
+  consent:"I have read the information and agree to take part.",
+  about_h:"A few questions about you",
+  age:"How old are you?", ages:["18–24","25–34","35–44","45–54","55+","Prefer not to say"],
+  tech:"How familiar are you with smart home or smart office devices (e.g. smart lights, sensors)?",
+  techs:["Not at all","A little","Quite familiar","Very familiar"],
+  techbg:"Do you have a technical background (e.g. computer science, engineering)?", yesno:["Yes","No"],
+  office_h:"The smart office",
+  office_p:"This is the office where Alice and Bob work. It has a meeting room. From the outside you can't see whether someone is inside, so there is a status light above the meeting-room door. Its colour is set automatically by the smart office system, which follows a set of rules.",
+  office_p2:"The rules in this office were created by different people and don't always fit together well. Some of them can apply at the same time, and three different rules can turn the light orange. That's why the status light is not always what people expect.",
+  smartex_h:"SmartEx, the explanation assistant",
+  smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it. SmartEx looks at which rules exist, what the sensors measured and what just happened, and explains it to you. SmartEx does not control or change anything itself.",
+  dev_h:"The smart devices", dev_p:"Click each highlighted device to see what it does. When you have looked at all seven, you can continue.",
+  dev_seen:"seen", show_rules:"Show rules",
+  dev:{
+   door:["Door sensor","The door sensor tells the smart office system when the meeting-room door opens or closes."],
+   motion:["Motion sensor","The motion sensor hangs inside the meeting room. It is only there so the smart office system knows whether movement was detected inside."],
+   light:["Status light","The status light shows people outside the meeting room a colour. The rules decide which colour."],
+   weather:["Weather forecast","This display shows the weather forecast, for example rain or sun. Some rules use it."],
+   clock:["Clock","The office knows the time. Some rules only apply at certain times. The note above the clock shows the most important times."],
+   smoke:["Smoke and CO₂ detector","The detector notices smoke, CO₂ or a fire alarm."],
+   fan:["Ventilation fan","The ventilation fan in the meeting room can run on normal or high."]},
+  labels:{room:"Meeting room", forecast:"Forecast", you:"You", motion:"motion sensor", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00"},
+  door_h:"Looking at the meeting room", door_p:"Try it out: change the door and the room below. When the door is slightly open, you can see through the gap whether people are inside. When it is closed, you can't.",
+  door_lbl:"Door", door_opts:{closed:"Closed", crack:"Slightly open"}, room_lbl:"Meeting room", room_opts:{empty:"Empty", full:"People inside"},
+  door_todo:"Try “Slightly open” with both “Empty” and “People inside” to continue.",
+  rules_h:"The office rules", rules_p:"The status light follows these rules. Read each rule from top to bottom. Several rules can be true at the same time.",
+  k_when:"Starts when", k_only:"Only if", k_then:"Result", then_tpl:(c,x)=>`The status light turns ${c}${x}.`, then_off:x=>`The status light turns off${x}.`,
+  people_h:"Alice and Bob", people_p:"During the study you will take on the role of Alice or Bob. Try to see each situation through their eyes.",
+  alice:"Alice works in this office and knows a bit about technology. Words like “sensor” or “trigger” are familiar to her, but she is not an expert.",
+  bob:"Bob also works in this office. He is not technical and prefers simple, everyday language.",
+  quiz_h:"Quick check", quiz_p:"Let's see if everything is clear. You will see the right answer after you choose.",
+  quiz:[
+   {q:"When is lunchtime in this office?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
+   {q:"What does the motion sensor detect?", o:["If the door is open","If someone is moving inside the meeting room","The time"], c:1},
+   {q:"What does SmartEx do?", o:["It controls the devices in the office","It explains situations you don't understand","It creates new rules for the office"], c:1}],
+  right:"Correct!", wrong:"Not quite. The right answer is: ",
+  sit:(n)=>`Situation ${n} of 3`, story_h:"What is happening", 
+  ask_h:"Ask SmartEx", 
+  st:{time:"Time", weather:"Weather", rain:"Rain", sun:"Sunny", door:"Meeting-room door", crack:"slightly open", closed:"closed", light:"Status light", green:"green", orange:"orange", blue:"blue", off:"off"},
+  ask_btn:q=>`Ask SmartEx: “${q}”`, bot:"SmartEx", me:"You",
+  bot_back:"Before I answer: what did you expect instead? Put these rules in order.",
+  rank_help:"Drag each rule onto a numbered place (or tap a rule, then tap a place). Place 1 = the rule you expected most. You can move rules around until you lock in your order. Details on each rule are in the office note.",
+  top:"expected most", bottom:"expected least", pool_lbl:"Not placed yet", pool_empty:"All rules are placed.", slots_lbl:"Your order",
+  your_rule:"Your rule",
+  lock:"Lock in my order", locked:"Your order is locked in.", lock_first:"Please lock in your order to continue.",
+  bot_thanks:"Thank you! On the next page you will see my explanation.",
+  rate_h:"Rate the explanations",
+  rate_p:"Here are two explanations from SmartEx for your question. Please read both carefully and rate each one.",
+  your_q:"Your question", expl:"Explanation", pref:"Which explanation do you prefer?",
+  lik_items:[["clear","The explanation is clear."],["underst","The explanation is easy to understand."],["helpful","The explanation is helpful."],["natural","The explanation sounds natural."],["trust","I would trust this explanation."]],
+  lik_scale:["1 = strongly disagree","5 = strongly agree"],
+  mcq_h:"Your understanding",
+  final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)",
+  attn:"To show you are reading carefully, please choose “Blue”.", attn_o:["Green","Orange","Blue","Off"],
+  end_h:"Thank you!", end_p:"You have finished the study. Your answers help to make smart offices easier to understand.",
+  saved:"Your answers have been saved.", notsaved:"Your answers could not be sent. Please check your internet connection and try again.", retry:"Try again",
+  cont_survey:"Continue", debug:"Collected data (test mode only)",
+  notes_intro:"This is the office note. It lists all rules and your current situation. You can look at it at any time during the study.", got_it:"Got it",
+  notes_title:"Office note", notes_btn:"Office note", close:"Close",
+  n_story:"Your situation", n_times:"Times", n_rules:"Rules for the status light", n_owner:"Created by",
+  n_stats:(r,a,b)=>`Fired ${r}× · explained to Alice ${a}× and Bob ${b}× (past 90 days)`,
+ },
+ de:{
+  brand:"Studie: Smartes Büro", next:"Weiter", back:"Zurück", missing:"Bitte beantworte alle Fragen, um fortzufahren.",
+  start_h:"Willkommen im smarten Büro", start_p:"In dieser Studie schaust du dir ein smartes Büro an, in dem Sensoren und Regeln vieles automatisch steuern. Du schlüpfst in die Rolle von Alice oder Bob, die dort arbeiten, und siehst Situationen aus ihrer Sicht. Die Studie dauert etwa 15–20 Minuten.",
+  start_p2:"Deine Antworten sind anonym und werden nur für eine Bachelorarbeit an der Universität zu Köln verwendet. Du kannst jederzeit abbrechen.",
+  consent:"Ich habe die Informationen gelesen und bin mit der Teilnahme einverstanden.",
+  about_h:"Ein paar Fragen zu dir",
+  age:"Wie alt bist du?", ages:["18–24","25–34","35–44","45–54","55+","Keine Angabe"],
+  tech:"Wie vertraut bist du mit Smart-Home- oder Smart-Office-Geräten (z. B. smarte Lampen, Sensoren)?",
+  techs:["Gar nicht","Ein wenig","Ziemlich vertraut","Sehr vertraut"],
+  techbg:"Hast du einen technischen Hintergrund (z. B. Informatik, Ingenieurwesen)?", yesno:["Ja","Nein"],
+  office_h:"Das smarte Büro",
+  office_p:"Das ist das Büro, in dem Alice und Bob arbeiten. Es hat einen Besprechungsraum. Von außen sieht man nicht, ob jemand drin ist, deshalb gibt es über der Tür ein Statuslicht. Seine Farbe setzt das Smart-Office-System automatisch – nach bestimmten Regeln.",
+  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt und passen nicht immer gut zusammen. Manche können gleichzeitig gelten, und drei verschiedene Regeln können das Licht orange schalten. Deshalb ist das Statuslicht nicht immer so, wie man es erwartet.",
+  smartex_h:"SmartEx, der Erklär-Assistent",
+  smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen. SmartEx schaut sich dafür an, welche Regeln es gibt, was die Sensoren gemessen haben und was gerade passiert ist, und erklärt es dir. SmartEx steuert selbst nichts und ändert nichts.",
+  dev_h:"Die smarten Geräte", dev_p:"Klicke auf jedes markierte Gerät, um zu sehen, was es macht. Wenn du dir alle sieben angesehen hast, geht es weiter.",
+  dev_seen:"gesehen", show_rules:"Regeln zeigen",
+  dev:{
+   door:["Türsensor","Der Türsensor meldet dem Smart-Office-System, wenn die Tür des Besprechungsraums auf- oder zugeht."],
+   motion:["Bewegungsmelder","Der Bewegungsmelder hängt im Besprechungsraum. Er ist nur dafür da, dass das Smart-Office-System weiß, ob drinnen Bewegung erkannt wurde."],
+   light:["Statuslicht","Das Statuslicht zeigt den Leuten außerhalb des Besprechungsraums eine Farbe. Die Regeln entscheiden, welche."],
+   weather:["Wettervorhersage","Dieses Display zeigt die Wettervorhersage, zum Beispiel Regen oder Sonne. Manche Regeln nutzen sie."],
+   clock:["Uhr","Das Büro kennt die Uhrzeit. Manche Regeln gelten nur zu bestimmten Zeiten. Die Notiz über der Uhr zeigt die wichtigsten Zeiten."],
+   smoke:["Rauch- und CO₂-Melder","Der Melder erkennt Rauch, CO₂ oder einen Feueralarm."],
+   fan:["Lüfter","Der Lüfter im Besprechungsraum kann normal oder auf hoch laufen."]},
+  labels:{room:"Besprechungsraum", forecast:"Vorhersage", you:"Du", motion:"Bewegungsmelder", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00"},
+  door_h:"Blick auf den Besprechungsraum", door_p:"Probier es aus: Ändere unten die Tür und den Raum. Wenn die Tür einen Spalt offen ist, siehst du durch den Spalt, ob Leute drin sind. Wenn sie zu ist, nicht.",
+  door_lbl:"Tür", door_opts:{closed:"Zu", crack:"Einen Spalt offen"}, room_lbl:"Besprechungsraum", room_opts:{empty:"Leer", full:"Leute drin"},
+  door_todo:"Probiere „Einen Spalt offen“ mit „Leer“ und mit „Leute drin“ aus, um weiterzumachen.",
+  rules_h:"Die Regeln im Büro", rules_p:"Das Statuslicht folgt diesen Regeln. Lies jede Regel von oben nach unten. Mehrere Regeln können gleichzeitig zutreffen.",
+  k_when:"Startet, wenn", k_only:"Nur wenn", k_then:"Ergebnis", then_tpl:(c,x)=>`Das Statuslicht wird ${c}${x}.`, then_off:x=>`Das Statuslicht geht aus${x}.`,
+  people_h:"Alice und Bob", people_p:"Während der Studie schlüpfst du in die Rolle von Alice oder Bob. Versuche, jede Situation mit ihren Augen zu sehen.",
+  alice:"Alice arbeitet in diesem Büro und kennt sich ein bisschen mit Technik aus. Wörter wie „Sensor“ oder „Auslöser“ kennt sie, aber sie ist keine Expertin.",
+  bob:"Bob arbeitet auch in diesem Büro. Er ist nicht technisch und mag einfache Alltagssprache.",
+  quiz_h:"Kurzer Check", quiz_p:"Mal sehen, ob alles klar ist. Nach deiner Wahl siehst du die richtige Antwort.",
+  quiz:[
+   {q:"Wann ist in diesem Büro Mittagszeit?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
+   {q:"Was erkennt der Bewegungsmelder?", o:["Ob die Tür offen ist","Ob sich jemand im Besprechungsraum bewegt","Die Uhrzeit"], c:1},
+   {q:"Was macht SmartEx?", o:["Es steuert die Geräte im Büro","Es erklärt Situationen, die man nicht versteht","Es erstellt neue Regeln für das Büro"], c:1}],
+  right:"Richtig!", wrong:"Nicht ganz. Richtig ist: ",
+  sit:(n)=>`Situation ${n} von 3`, story_h:"Was passiert gerade",
+  ask_h:"Frag SmartEx",
+  st:{time:"Uhrzeit", weather:"Wetter", rain:"Regen", sun:"Sonnig", door:"Tür Besprechungsraum", crack:"einen Spalt offen", closed:"zu", light:"Statuslicht", green:"grün", orange:"orange", blue:"blau", off:"aus"},
+  ask_btn:q=>`Frag SmartEx: „${q}“`, bot:"SmartEx", me:"Du",
+  bot_back:"Bevor ich antworte: Was hast du stattdessen erwartet? Bring diese Regeln in eine Reihenfolge.",
+  rank_help:"Ziehe jede Regel auf einen nummerierten Platz (oder tippe eine Regel an und dann einen Platz). Platz 1 = die Regel, die du am meisten erwartet hast. Du kannst die Regeln verschieben, bis du deine Reihenfolge festlegst. Details zu jeder Regel findest du in der Büronotiz.",
+  top:"am meisten erwartet", bottom:"am wenigsten erwartet", pool_lbl:"Noch nicht eingeordnet", pool_empty:"Alle Regeln sind eingeordnet.", slots_lbl:"Deine Reihenfolge",
+  your_rule:"Deine Regel",
+  lock:"Reihenfolge festlegen", locked:"Deine Reihenfolge ist festgelegt.", lock_first:"Bitte lege deine Reihenfolge fest, um weiterzumachen.",
+  bot_thanks:"Danke! Auf der nächsten Seite siehst du meine Erklärung.",
+  rate_h:"Bewerte die Erklärungen",
+  rate_p:"Hier sind zwei Erklärungen von SmartEx zu deiner Frage. Bitte lies beide aufmerksam und bewerte jede einzeln.",
+  your_q:"Deine Frage", expl:"Erklärung", pref:"Welche Erklärung gefällt dir besser?",
+  lik_items:[["clear","Die Erklärung ist klar."],["underst","Die Erklärung ist leicht zu verstehen."],["helpful","Die Erklärung ist hilfreich."],["natural","Die Erklärung klingt natürlich."],["trust","Ich würde dieser Erklärung vertrauen."]],
+  lik_scale:["1 = stimme gar nicht zu","5 = stimme voll zu"],
+  mcq_h:"Dein Verständnis",
+  final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)",
+  attn:"Um zu zeigen, dass du aufmerksam liest, wähle bitte „Blau“.", attn_o:["Grün","Orange","Blau","Aus"],
+  end_h:"Vielen Dank!", end_p:"Du hast die Studie abgeschlossen. Deine Antworten helfen, smarte Büros verständlicher zu machen.",
+  saved:"Deine Antworten wurden gespeichert.", notsaved:"Deine Antworten konnten nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuche es erneut.", retry:"Erneut versuchen",
+  cont_survey:"Weiter", debug:"Gesammelte Daten (nur Testmodus)",
+  notes_intro:"Das ist die Büronotiz. Hier findest du alle Regeln und deine aktuelle Situation. Du kannst sie während der Studie jederzeit ansehen.", got_it:"Verstanden",
+  notes_title:"Büronotiz", notes_btn:"Büronotiz", close:"Schließen",
+  n_story:"Deine Situation", n_times:"Zeiten", n_rules:"Regeln für das Statuslicht", n_owner:"Erstellt von",
+  n_stats:(r,a,b)=>`${r}-mal ausgelöst · Alice ${a}-mal und Bob ${b}-mal erklärt (letzte 90 Tage)`,
+ }
+};
+
+/* =====================================================================
+   6) APP LOGIC
+   ===================================================================== */
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let pid = "P" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+let lang = (navigator.language||"en").toLowerCase().startsWith("de") ? "de" : "en";
+const t = () => T[lang];
+const contextMode = SETTINGS.CONTEXT_MODE==="split" ? (Math.random()<.5?"all":"basic") : SETTINGS.CONTEXT_MODE;
+
+let DATA = {
+  pid, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
+  context_mode:contextMode, context_setting:SETTINGS.CONTEXT_MODE,
+  order:shuffle(["TC1","TC2","TC3"]), ab:{},
+  consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[]
+};
+for (const tc of ["TC1","TC2","TC3"]) {
+  DATA.ab[tc] = Math.random()<.5 ? {A:"C0",B:"WIN"} : {A:"WIN",B:"C0"};
+  DATA.mcq_order = DATA.mcq_order || {}; DATA.mcq_order[tc] = shuffle([0,1,2,3]);
+  const initial = shuffle(SCENARIOS[tc].foils);
+  DATA.rank[tc] = {initial, pool:[...initial], slots:Array(initial.length).fill(null), moves:0, asked:false, locked:false, log:[]};
+}
+/* ---------- resume an unfinished session after a reload / closed tab ---------- */
+const STORE_KEY = "smartex_study_session";
+let resumeIdx = 0;
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && saved.DATA && !saved.DATA.finished_at){ DATA = saved.DATA; pid = DATA.pid; resumeIdx = saved.idx||0; lang = saved.lang||lang; (DATA.resumed ||= []).push(new Date().toISOString()); }
+} catch(e){}
+function persist(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({DATA, idx, lang})); }catch(e){} }
+
+const SCREENS = ["start","about","office","devices","door","rules","people","quiz",
+  ...DATA.order.flatMap(tc=>["story:"+tc,"rank:"+tc,"rate:"+tc]), "final","end"];
+const NOTES_FROM = SCREENS.indexOf("rules");
+let idx = Math.min(resumeIdx, SCREENS.length-2), enteredAt = Date.now(), openDev = null;
+const demo = {door:"crack", full:false};
+const app = document.getElementById("app");
+
+/* ---------- rule rendering (top to bottom) ---------- */
+function ruleBlock(id, {name=true, extraHTML=""}={}){
+  const r = RULES[id], L = r[lang], tt = t();
+  const extra = r.extra ? r.extra[lang] : "";
+  const result = r.c==="off" ? tt.then_off(extra) : tt.then_tpl(tt.st[r.c], extra);
+  return `<div class="rulebox">${name?`<div class="rname">${esc(L.name)}${extraHTML}</div>`:""}
+    <div class="rstep"><span class="k">${tt.k_when}</span><span>${esc(L.when)}</span></div>
+    ${L.only?`<div class="rarrow" aria-hidden="true">↓</div><div class="rstep"><span class="k">${tt.k_only}</span><span>${esc(L.only)}</span></div>`:""}
+    <div class="rarrow" aria-hidden="true">↓</div>
+    <div class="rstep"><span class="k">${tt.k_then}</span><span class="rrow"><span class="swatch" style="background:${LIGHT[r.c]}"></span>${esc(result)}</span></div></div>`;
+}
+
+/* ---------- office drawing ---------- */
+const DEFAULT_STATE = {time:"10:10", weather:"sun", door:"closed", full:false, light:"green", person:null};
+function officeSVG(s, tutorial=false){
+  const L = t().labels, on = s.light!=="off", col = LIGHT[s.light];
+  const hot = (k,cx,cy,r,inner) => {
+    if (!tutorial) return inner;
+    const done = DATA.tutorial.seen.includes(k);
+    return `<g data-hot="${k}" class="${done?"done":""}" role="button" tabindex="0" aria-label="${esc(t().dev[k][0])}">${inner}<circle class="ring" cx="${cx}" cy="${cy}" r="${r}"/></g>`;
+  };
+  const LOOK = {Alice:{hair:"#6B4A2E", skin:"#F1C9A5", shirt:"var(--l-green)", long:true}, Bob:{hair:"#2D2A26", skin:"#D9A77E", shirt:"var(--l-blue)", long:false}};
+  // standing person, feet at y=386: head, neck, shoulders, arms, legs are all connected
+  const figure = (cx, k) => `<g>
+      <rect x="${cx-10}" y="326" width="9" height="60" rx="3" fill="var(--screen)"/><rect x="${cx+1}" y="326" width="9" height="60" rx="3" fill="var(--screen)"/>
+      <rect x="${cx-21}" y="281" width="7" height="42" rx="3.5" fill="${k.shirt}"/><rect x="${cx+14}" y="281" width="7" height="42" rx="3.5" fill="${k.shirt}"/>
+      <path d="M${cx-15} 332 L${cx-15} 290 Q${cx-15} 276 ${cx-3} 276 L${cx+3} 276 Q${cx+15} 276 ${cx+15} 290 L${cx+15} 332 Z" fill="${k.shirt}"/>
+      ${k.long?`<path d="M${cx-13} 258 q0 -20 13 -20 q13 0 13 20 v18 h-26z" fill="${k.hair}"/>`:""}
+      <rect x="${cx-4}" y="264" width="8" height="14" fill="${k.skin}"/>
+      <circle cx="${cx}" cy="256" r="12" fill="${k.skin}"/>
+      ${k.long?"":`<path d="M${cx-12.5} 254 q1 -14 12.5 -14 q11.5 0 12.5 14 q-5 -6 -12.5 -6 q-7.5 0 -12.5 6z" fill="${k.hair}"/>`}</g>`;
+  const standing = (cx, who) => figure(cx, LOOK[who]);
+  const GROUP = [{hair:"#8A5A2B", skin:"#E8B996", shirt:"#8E5BA8", long:true},{hair:"#1F1F1F", skin:"#B98160", shirt:"#C0563E", long:false},{hair:"#C9A15A", skin:"#F3D2B5", shirt:"#4B8C8A", long:false}];
+  const seated = (x, who) => { const k = LOOK[who], cx = x+60;   // seen from behind, facing the monitor
+    return `<g><rect x="${cx-22}" y="340" width="44" height="8" rx="3" fill="var(--screen)"/><rect x="${cx-3}" y="348" width="6" height="36" fill="var(--screen)"/>
+      <path d="M${cx-24} 344 q0 -44 24 -44 q24 0 24 44z" fill="${k.shirt}"/>
+      <circle cx="${cx}" cy="290" r="15" fill="${k.hair}"/>${k.long?`<path d="M${cx-15} 290 v22 h30 v-22z" fill="${k.hair}"/>`:""}</g>`; };
+  const desk = (x, name) => {
+    const me = s.person === name, sits = !me && s.colleague && s.person;
+    return `<g>${me?`<rect x="${x-26}" y="232" width="152" height="170" rx="10" fill="var(--you)" opacity=".28"/>`:""}
+      <rect x="${x+30}" y="262" width="60" height="40" rx="3" fill="var(--screen)"/><rect x="${x+56}" y="302" width="8" height="12" fill="var(--screen)"/>
+      <rect x="${x}" y="314" width="120" height="12" rx="2" fill="var(--wood)"/>
+      <rect x="${x+6}" y="326" width="8" height="60" fill="var(--wood2)"/><rect x="${x+106}" y="326" width="8" height="60" fill="var(--wood2)"/>
+      <rect x="${x+30}" y="334" width="60" height="18" rx="3" fill="var(--panel)" stroke="var(--line)"/>
+      <text x="${x+60}" y="347" text-anchor="middle" font-size="12" font-weight="700">${name}</text>
+      ${sits?seated(x,name):""}
+      ${me?`${standing(x-4,name)}<text x="${x+60}" y="252" text-anchor="middle" font-size="14" font-weight="700">${L.you}</text>`:""}</g>`;
+  };
+  const crack = s.door==="crack";
+  const inside = crack ? `<rect x="616" y="176" width="118" height="214" fill="var(--room)"/>
+      <rect x="690" y="318" width="44" height="7" fill="var(--wood)"/><rect x="722" y="325" width="5" height="50" fill="var(--wood2)"/>
+      ${s.full ? figure(712, {hair:"#3B2A1E", skin:"#E8B996", shirt:"#B5543C", long:false})
+        : ""}
+      <rect x="616" y="176" width="72" height="214" fill="var(--wood)"/><rect x="686" y="176" width="4" height="214" fill="var(--wood2)"/>
+      <circle cx="676" cy="285" r="5" fill="#E0C080"/>`
+    : `<rect x="616" y="176" width="118" height="214" fill="var(--wood)"/><circle cx="720" cy="285" r="5" fill="#E0C080"/>`;
+  return `<svg viewBox="0 0 900 440" role="img" aria-label="Office">
+    <rect width="900" height="440" fill="var(--wall)"/><rect y="390" width="900" height="50" fill="var(--floor)"/>
+    <rect x="0" y="0" width="900" height="8" fill="var(--line)"/>
+    <rect x="500" y="40" width="400" height="350" fill="var(--wall2)"/>
+    <rect x="620" y="56" width="160" height="26" rx="4" fill="var(--panel)" stroke="var(--line)"/>
+    <text x="700" y="74" text-anchor="middle" font-size="14" font-weight="700">${L.room}</text>
+    <rect x="610" y="170" width="130" height="220" fill="var(--wood2)"/>
+    <clipPath id="doorclip"><rect x="616" y="176" width="118" height="214"/></clipPath>
+    <g clip-path="url(#doorclip)">${inside}</g>
+    ${hot("door",746,188,20,`<rect x="740" y="178" width="12" height="22" rx="2" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>`)}
+    ${hot("light",675,138,30,`${on?`<circle cx="675" cy="138" r="30" fill="${col}" opacity=".25"/>`:""}<circle cx="675" cy="138" r="16" fill="${col}" stroke="var(--ink)" stroke-width="3" opacity="${on?1:.6}"/>`)}
+    ${hot("motion",560,130,24,`<rect x="542" y="118" width="36" height="24" rx="5" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/><circle cx="560" cy="130" r="5" fill="var(--muted)"/>`)}
+    <text x="560" y="160" text-anchor="middle" font-size="11" fill="var(--muted)">${L.motion}</text>
+    ${hot("fan",840,140,30,`<circle cx="840" cy="140" r="22" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>
+      <g fill="var(--muted)">${[0,120,240].map(a=>`<ellipse cx="840" cy="129" rx="5" ry="10" transform="rotate(${a} 840 140)"/>`).join("")}</g><circle cx="840" cy="140" r="3" fill="var(--ink)"/>`)}
+    ${hot("weather",110,112,62,`<rect x="44" y="60" width="132" height="104" rx="8" fill="var(--screen)"/>
+      <text x="110" y="80" text-anchor="middle" font-size="12" style="fill:#C9D3DD">${L.forecast}</text>
+      ${s.weather==="rain"
+        ? `<g fill="#C3CFDB"><ellipse cx="98" cy="102" rx="26" ry="12"/><ellipse cx="122" cy="96" rx="20" ry="14"/><rect x="72" y="100" width="72" height="12" rx="6"/></g>
+           <g stroke="#7FB0E0" stroke-width="3" stroke-linecap="round">${[84,98,112,126].map((x,i)=>`<line x1="${x}" y1="${118+i%2*3}" x2="${x-5}" y2="${130+i%2*3}"/>`).join("")}</g>`
+        : `<g stroke="#F2C94C" stroke-width="3" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<line x1="${110+19*Math.cos(r)}" y1="${106+19*Math.sin(r)}" x2="${110+25*Math.cos(r)}" y2="${106+25*Math.sin(r)}"/>`;}).join("")}</g><circle cx="110" cy="106" r="14" fill="#F2C94C"/>`}
+      <text x="110" y="155" text-anchor="middle" font-size="15" font-weight="700" style="fill:#FFFFFF">${t().st[s.weather]}</text>`)}
+    <rect x="218" y="26" width="144" height="42" rx="4" fill="var(--note)" stroke="var(--note-line)"/>
+    <text x="290" y="43" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.lunch}</text>
+    <text x="290" y="60" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.closing}</text>
+    ${hot("clock",290,100,50,`<rect x="244" y="76" width="92" height="48" rx="8" fill="var(--screen)"/>
+      <text x="290" y="110" text-anchor="middle" font-size="26" font-weight="700" style="fill:#7FE0A8;font-variant-numeric:tabular-nums;letter-spacing:1px">${s.time}</text>`)}
+    ${hot("smoke",420,26,22,`<rect x="416" y="8" width="8" height="8" fill="var(--ink)"/><path d="M400 16 h40 v8 a20 9 0 0 1 -40 0z" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>`)}
+    ${desk(40,"Alice")}${desk(230,"Bob")}
+    ${s.group ? figure(430,GROUP[0]) + figure(472,GROUP[1]) + figure(548,GROUP[2]) : ""}
+  </svg>`;
+}
+function statusChips(s){
+  const st = t().st;
+  return `<div class="status"><span class="chip">${st.time}: ${s.time}</span><span class="chip">${st.weather}: ${st[s.weather]}</span>
+    <span class="chip">${st.door}: ${st[s.door]}</span><span class="chip"><span class="swatch" style="background:${LIGHT[s.light]}"></span>${st.light}: ${st[s.light]}</span></div>`;
+}
+function avatar(who){
+  return who==="Alice"
+    ? `<svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="var(--wall2)"/><path d="M16 40 q0 -26 20 -26 q20 0 20 26 v18 h-40z" fill="#6B4A2E"/><circle cx="36" cy="34" r="14" fill="#F1C9A5"/><path d="M14 72 q0 -20 22 -20 q22 0 22 20z" fill="var(--l-green)"/></svg>`
+    : `<svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="36" fill="var(--wall2)"/><circle cx="36" cy="34" r="14" fill="#D9A77E"/><path d="M22 30 q2 -14 14 -14 q12 0 14 14 q-6 -6 -14 -6 q-8 0 -14 6z" fill="#2D2A26"/><path d="M14 72 q0 -20 22 -20 q22 0 22 20z" fill="var(--l-blue)"/></svg>`;
+}
+
+/* ---------- office note (cheat sheet) ---------- */
+function curTC(){ const sc = SCREENS[idx]; const m = sc.match(/^(story|rank|rate):(TC\d)$/); return m ? m[2] : null; }
+function notesHTML(){
+  const tt = t(), tc = curTC();
+  const rules = Object.entries(RULES).map(([id,r])=>`<div class="nrule">${ruleBlock(id)}<div class="own">${tt.n_owner}: <b>${r.owner}</b></div>
+    ${contextMode==="all"?`<div class="own">${tt.n_stats(STATS[id].ran,STATS[id].explained.Alice,STATS[id].explained.Bob)}</div>`:""}</div>`).join("");
+  return `<div class="pin" aria-hidden="true"></div><div class="notes-head"><h3>${tt.notes_title}</h3><button type="button" class="btn ghost small notes-close" id="notes-close">${tt.close}</button></div>
+    ${tc?`<div class="sec"><b>${tt.n_story}</b><p style="margin:.3em 0 0">${esc(SCENARIOS[tc].story[lang])}</p></div>`:""}
+    <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
+    <div class="sec"><b>${tt.n_rules}</b>${rules}</div>`;
+}
+function renderNotes(){
+  const on = idx>=NOTES_FROM && SCREENS[idx]!=="end";
+  const hintEl = document.getElementById("notes-hint");
+  const showHint = on && !DATA.notes_hint_done;
+  hintEl.hidden = !showHint; document.body.classList.toggle("hinting", showHint);
+  if (showHint) hintEl.innerHTML = `<span class="hint-arrow" aria-hidden="true"></span><p>${esc(t().notes_intro)}</p><button type="button" class="btn small" id="hint-ok">${t().got_it}</button>`;
+  document.body.classList.toggle("notes-on", on);
+  const n = document.getElementById("notes"); n.innerHTML = on ? notesHTML() : "";
+  document.getElementById("notes-tab").textContent = t().notes_btn;
+}
+function openNotes(src){
+  const n = document.getElementById("notes");
+  DATA.notes_opens.push({screen:SCREENS[idx], via:src, at_ms:Date.now()-enteredAt});
+  if (window.matchMedia("(min-width:1100px)").matches){ n.classList.remove("flash"); void n.offsetWidth; n.classList.add("flash"); }
+  else n.classList.add("open");
+}
+
+/* ---------- helpers ---------- */
+function nav(canGo){
+  const showBack = idx>0 && SCREENS[idx]!=="end";
+  return `<div class="nav"><span class="hint" id="hint"></span>
+    ${showBack?`<button type="button" class="btn ghost" id="back">${t().back}</button>`:""}
+    <button type="button" class="btn" id="next" ${canGo?"":"disabled"}>${t().next}</button></div>`;
+}
+function radios(name, opts, sel, values){
+  return opts.map((o,i)=>{ const v = values?values[i]:i;
+    return `<label class="opt"><input type="radio" name="${name}" value="${esc(v)}" ${String(sel)===String(v)?"checked":""}><span>${esc(o)}</span></label>`;}).join("");
+}
+const demoKey = () => `${demo.door}-${demo.full?"full":"empty"}`;
+const demoDone = () => ["crack-empty","crack-full"].every(k=>DATA.tutorial.door_demo.includes(k));
+
+/* ---------- screens ---------- */
+const R = {
+ start(){ return `<h1>${t().start_h}</h1><p>${t().start_p}</p><p class="muted">${t().start_p2}</p>
+   <label class="opt"><input type="checkbox" id="consent" ${DATA.consent?"checked":""}><span>${t().consent}</span></label>${nav(DATA.consent)}`; },
+ about(){ const a = DATA.about;
+   return `<h2>${t().about_h}</h2>
+   <fieldset><legend>${t().age}</legend>${radios("age",t().ages,a.age,T.en.ages)}</fieldset>
+   <fieldset><legend>${t().tech}</legend>${radios("tech",t().techs,a.tech,[1,2,3,4])}</fieldset>
+   <fieldset><legend>${t().techbg}</legend>${radios("techbg",t().yesno,a.techbg,["yes","no"])}</fieldset>${nav(true)}`; },
+ office(){ return `<h2>${t().office_h}</h2><div class="scene">${officeSVG(DEFAULT_STATE)}</div>
+   <p style="margin-top:16px">${t().office_p}</p><p>${t().office_p2}</p>
+   <h3>${t().smartex_h}</h3><p>${t().smartex_p}</p>${nav(true)}`; },
+ devices(){ const k = openDev;
+   return `<h2>${t().dev_h}</h2><p>${t().dev_p}</p><div class="scene">${officeSVG(DEFAULT_STATE,true)}</div>
+   ${k?`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">${esc(t().dev[k][0])}</h3><p style="margin:0">${esc(t().dev[k][1])}</p>
+</div>`:""}
+   <p class="muted">${DATA.tutorial.seen.length} / 7 ${t().dev_seen}</p>${nav(DATA.tutorial.seen.length===7)}`; },
+ door(){ const tt = t();
+   const seg = (name, opts, cur) => `<div class="seg" role="group">${Object.entries(opts).map(([v,l])=>`<button type="button" data-demo="${name}" data-v="${v}" aria-pressed="${String(cur)===v}">${esc(l)}</button>`).join("")}</div>`;
+   return `<h2>${tt.door_h}</h2><p>${tt.door_p}</p>
+   <div class="scene">${officeSVG({...DEFAULT_STATE, door:demo.door, full:demo.full, light:"off"})}</div>
+   <div class="controls"><div><span class="lbl">${tt.door_lbl}</span>${seg("door",tt.door_opts,demo.door)}</div>
+     <div><span class="lbl">${tt.room_lbl}</span>${seg("full",tt.room_opts,demo.full?"full":"empty")}</div></div>
+   ${demoDone()?"":`<p class="muted" style="margin-top:12px">${tt.door_todo}</p>`}${nav(demoDone())}`; },
+ rules(){ return `<h2>${t().rules_h}</h2><p>${t().rules_p}</p><p class="muted">${t().office_p2}</p>
+   <div class="grid">${Object.keys(RULES).map(id=>`<div class="card rule" style="--c:${LIGHT[RULES[id].c]}">${ruleBlock(id)}</div>`).join("")}</div>${nav(true)}`; },
+ people(){ return `<h2>${t().people_h}</h2><p>${t().people_p}</p><div class="stack">
+   <div class="card person">${avatar("Alice")}<div><b>Alice</b><div>${t().alice}</div></div></div>
+   <div class="card person">${avatar("Bob")}<div><b>Bob</b><div>${t().bob}</div></div></div></div>${nav(true)}`; },
+ quiz(){ return `<h2>${t().quiz_h}</h2><p>${t().quiz_p}</p>${t().quiz.map((q,i)=>{
+     const a = DATA.quiz["q"+(i+1)];
+     const fb = !a?"":(a.answer===q.c?`<div class="feedback ok">${t().right}</div>`:`<div class="feedback no">${t().wrong}${esc(q.o[q.c])}</div>`);
+     return `<fieldset><legend>${i+1}. ${esc(q.q)}</legend>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="quiz${i}" value="${j}" ${a&&a.answer===j?"checked":""} ${a?"disabled":""}><span>${esc(o)}</span></label>`).join("")}${fb}</fieldset>`;}).join("")}
+   ${nav(Object.keys(DATA.quiz).length===t().quiz.length)}`; },
+ final(){ const f = DATA.final;
+   return `<h2>${t().final_h}</h2>
+   <fieldset><legend>${t().attn}</legend>${radios("attn",t().attn_o,f.attention,["green","orange","blue","off"])}</fieldset>
+   <fieldset><legend>${t().fb1}</legend><textarea id="fb1" rows="3">${esc(f.unclear||"")}</textarea></fieldset>
+   <fieldset><legend>${t().fb2}</legend><textarea id="fb2" rows="3">${esc(f.improve||"")}</textarea></fieldset>${nav(true)}`; },
+ end(){ return `<h1>${t().end_h}</h1><p>${t().end_p}</p><p class="muted" id="savestate">…</p>
+   ${SETTINGS.SURVEY_RETURN_URL?`<a class="btn" href="${esc(SETTINGS.SURVEY_RETURN_URL)}${SETTINGS.SURVEY_RETURN_URL.includes("?")?"&":"?"}pid=${pid}">${t().cont_survey}</a>`:""}
+   ${SETTINGS.TEST_MODE?`<details class="debug"><summary>${t().debug}</summary><pre>${esc(JSON.stringify(DATA,null,2))}</pre></details>`:""}`; },
+};
+const sitNo = tc => DATA.order.indexOf(tc)+1;
+
+function storyScreen(tc){
+  const s = SCENARIOS[tc];
+  return `<p class="eyebrow">${t().sit(sitNo(tc))}</p><h2>${t().story_h}</h2>
+    <div class="card person">${avatar(s.person)}<p class="story" style="margin:0">${esc(s.story[lang])}</p></div>${nav(true)}`;
+}
+
+function tile(tc, id, locked){
+  const s = SCENARIOS[tc], r = RULES[id], mine = r.owner===s.person, sel = ui.sel===id;
+  return `<button type="button" class="tile ${sel?"sel":""}" data-tile="${id}" ${locked?"disabled":""}><span class="swatch" style="background:${LIGHT[r.c]}"></span>${esc(r[lang].name)}${mine?` <span class="yours">${t().your_rule}</span>`:""}</button>`;
+}
+function rankScreen(tc){
+  const s = SCENARIOS[tc], d = DATA.rank[tc], tt = t(), n = d.slots.length;
+  let chat = `<div class="chat">`;
+  if (!d.asked) chat += `<button type="button" class="btn" id="ask" style="align-self:flex-end">${esc(tt.ask_btn(s.ask[lang]))}</button>`;
+  else {
+    const allPlaced = d.pool.length===0;
+    chat += `<div class="msg me"><span class="who">${tt.me}</span>${esc(s.ask[lang])}</div>
+      <div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${tt.bot_back}</b>
+      ${d.locked?"":`<p class="muted" style="margin:.4em 0 0;font-size:15px">${tt.rank_help}</p>`}
+      <div class="rank-area ${d.locked?"locked":""}">
+        ${d.locked?"":`<div class="zone-lbl">${tt.pool_lbl}</div><div class="pool ${d.pool.length?"":"empty"}" data-pool="1" data-empty="${esc(tt.pool_empty)}">${d.pool.map(id=>tile(tc,id,false)).join("")}</div>`}
+        <div class="zone-lbl">${tt.slots_lbl}</div>
+        <ol class="slots">${d.slots.map((id,i)=>`<li class="slot ${id?"filled":""}" data-slot="${i}"><span class="no">${i+1}</span>${id?tile(tc,id,d.locked):""}
+          ${i===0?`<span class="cap">${tt.top}</span>`:i===n-1?`<span class="cap">${tt.bottom}</span>`:""}</li>`).join("")}</ol>
+      </div>
+      ${d.locked?`<div class="lockmsg">${tt.locked}</div>`:`<button type="button" class="btn" id="lock" style="margin-top:12px" ${allPlaced?"":"disabled"}>${tt.lock}</button>`}</div>`;
+    if (d.locked) chat += `<div class="msg bot"><span class="who">${tt.bot}</span>${tt.bot_thanks}</div>`;
+  }
+  chat += `</div>`;
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>
+    <div class="scene">${officeSVG(s)}</div>${statusChips(s)}${chat}${nav(d.locked)}`;
+}
+function rateScreen(tc){
+  const s = SCENARIOS[tc], tt = t(), ab = DATA.ab[tc];
+  const d = DATA.rate[tc] || (DATA.rate[tc] = {pref:null, likert:{A:{},B:{}}, mcq:null});
+  const likert = side => tt.lik_items.map(([key,label])=>`<div class="lik"><div class="q">${esc(label)}</div>
+    <div class="pills" role="radiogroup" aria-label="${esc(label)}">${[1,2,3,4,5].map(v=>`<label><input type="radio" name="lk_${side}_${key}" value="${v}" ${d.likert[side][key]===v?"checked":""}><span>${v}</span></label>`).join("")}</div>
+    <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
+  const answer = side => `<div class="card answer ${side==="B"?"b":""}"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
+    <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2><p>${tt.rate_p}</p>
+   <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
+   <div class="stack" style="margin-top:14px">${answer("A")}${answer("B")}</div>
+   <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",[tt.expl+" A",tt.expl+" B"],d.pref,["A","B"])}</fieldset></div>
+   <div class="card" style="margin-top:14px"><h3 style="margin-top:0">${tt.mcq_h}</h3><fieldset style="margin:0"><legend>${esc(s.mcq.q[lang])}</legend>${radios("mcq",DATA.mcq_order[tc].map(i=>s.mcq.opts[i][lang]),d.mcq,DATA.mcq_order[tc])}</fieldset></div>
+   ${nav(true)}`;
+}
+const rateComplete = tc => { const d = DATA.rate[tc]; return !!(d && d.pref && d.mcq!==null && ["A","B"].every(sd=>T.en.lik_items.every(([k])=>d.likert[sd][k]))); };
+
+/* ---------- ranking interactions ---------- */
+const ui = {sel:null, drag:null};
+function place(tc, id, target, how){       // target: slot index (number) or "pool"
+  const d = DATA.rank[tc]; if (d.locked) return;
+  const fromSlot = d.slots.indexOf(id), fromPool = d.pool.indexOf(id);
+  if (target==="pool"){ if (fromPool>=0) return; d.slots[fromSlot] = null; d.pool.push(id); }
+  else {
+    if (fromSlot===target) return;
+    const occupant = d.slots[target];
+    if (fromSlot>=0){ d.slots[fromSlot] = occupant; }                    // swap between places
+    else { d.pool.splice(fromPool,1); if (occupant) d.pool.push(occupant); } // occupant goes back to the pool
+    d.slots[target] = id;
+  }
+  d.moves++; d.log.push({how, rule:id, to:target, slots:[...d.slots], at_ms:Date.now()-enteredAt});
+  ui.sel = null; render();
+}
+function dropTargetAt(x,y){
+  const el = document.elementFromPoint(x,y); if (!el) return null;
+  const slot = el.closest("[data-slot]"); if (slot) return Number(slot.dataset.slot);
+  if (el.closest("[data-pool]")) return "pool";
+  return null;
+}
+document.addEventListener("pointerdown", ev=>{
+  const tl = ev.target.closest(".tile[data-tile]"); if (!tl || tl.disabled) return;
+  const [kind,tc] = SCREENS[idx].split(":"); if (kind!=="rank" || DATA.rank[tc].locked) return;
+  if (ev.button!==undefined && ev.button!==0) return;
+  ui.drag = {id:tl.dataset.tile, tc, x0:ev.clientX, y0:ev.clientY, el:tl, ghost:null, over:null};
+});
+document.addEventListener("pointermove", ev=>{
+  const g = ui.drag; if (!g) return;
+  if (!g.ghost){
+    if (Math.hypot(ev.clientX-g.x0, ev.clientY-g.y0) < 6) return;
+    g.ghost = g.el.cloneNode(true); g.ghost.classList.add("ghost"); g.ghost.classList.remove("sel"); document.body.appendChild(g.ghost); g.el.classList.add("src");
+  }
+  ev.preventDefault();
+  if (ev.clientY > innerHeight-70) scrollBy(0,14); else if (ev.clientY < 90) scrollBy(0,-14);   // auto-scroll near the edges
+  g.ghost.style.left = (ev.clientX - g.ghost.offsetWidth/2)+"px"; g.ghost.style.top = (ev.clientY - g.ghost.offsetHeight/2)+"px";
+  const tgt = dropTargetAt(ev.clientX, ev.clientY);
+  document.querySelectorAll(".drop-hi").forEach(e=>e.classList.remove("drop-hi"));
+  if (tgt!==null){ const el = tgt==="pool" ? document.querySelector("[data-pool]") : document.querySelector(`[data-slot="${tgt}"]`); el && el.classList.add("drop-hi"); }
+}, {passive:false});
+function endDrag(ev){
+  const g = ui.drag; if (!g) return; ui.drag = null;
+  if (!g.ghost) return;                       // no movement: treat as a click (handled by click)
+  g.ghost.remove(); g.el.classList.remove("src"); ui.justDragged = true; setTimeout(()=>ui.justDragged=false, 0);
+  const tgt = dropTargetAt(ev.clientX, ev.clientY);
+  if (tgt!==null) place(g.tc, g.id, tgt, "drag"); else render();
+}
+document.addEventListener("pointerup", endDrag);
+document.addEventListener("pointercancel", e=>{ const g = ui.drag; if (g&&g.ghost){ g.ghost.remove(); g.el.classList.remove("src"); } ui.drag = null; });
+
+/* ---------- render + navigation ---------- */
+function render(){
+  document.documentElement.lang = lang;
+  document.getElementById("brand").textContent = t().brand;
+  document.querySelectorAll(".lang button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.lang===lang));
+  const pct = Math.round(idx/(SCREENS.length-1)*100);
+  document.getElementById("prog").style.width = pct+"%"; document.getElementById("progbar").setAttribute("aria-valuenow",pct);
+  const sc = SCREENS[idx], [kind,tc] = sc.split(":");
+  app.innerHTML = kind==="story" ? storyScreen(tc) : kind==="rank" ? rankScreen(tc) : kind==="rate" ? rateScreen(tc) : R[sc]();
+  renderNotes();
+  if (sc==="end") save();
+}
+function go(delta){
+  const sc = SCREENS[idx];
+  DATA.timing[sc] = (DATA.timing[sc]||0) + (Date.now()-enteredAt);
+  idx = Math.max(0, Math.min(SCREENS.length-1, idx+delta)); enteredAt = Date.now(); openDev = null; ui.sel = null;
+  document.getElementById("notes").classList.remove("open");
+  render(); window.scrollTo({top:0});
+  persist();
+  if (idx>0 && idx<SCREENS.length-1) saveProgress();
+  if (sc.startsWith("rate:") && delta>0) sendToSheet(false);   // partial row after each situation
+}
+function validate(){
+  const sc = SCREENS[idx], [kind,tc] = sc.split(":");
+  if (sc==="about") return !!(DATA.about.age && DATA.about.tech && DATA.about.techbg);
+  if (sc==="final") return !!DATA.final.attention;
+  if (kind==="rank") return DATA.rank[tc].locked;
+  if (kind==="rate") return rateComplete(tc);
+  return true;
+}
+
+app.addEventListener("click", e=>{
+  const hot = e.target.closest("[data-hot]");
+  if (hot){ const k = hot.dataset.hot; openDev = k; if(!DATA.tutorial.seen.includes(k)) DATA.tutorial.seen.push(k); render(); return; }
+  const sc = SCREENS[idx], [kind,tc] = sc.split(":");
+  if (kind==="rank" && !ui.justDragged && DATA.rank[tc] && !DATA.rank[tc].locked){
+    const tl = e.target.closest(".tile[data-tile]");
+    if (tl){ const id = tl.dataset.tile;
+      if (ui.sel && ui.sel!==id){ const sl = tl.closest("[data-slot]"); if (sl){ place(tc, ui.sel, Number(sl.dataset.slot), "tap"); return; } }
+      ui.sel = ui.sel===id ? null : id; render(); return; }
+    if (ui.sel){ const sl = e.target.closest("[data-slot]"); if (sl){ place(tc, ui.sel, Number(sl.dataset.slot), "tap"); return; }
+      if (e.target.closest("[data-pool]")){ place(tc, ui.sel, "pool", "tap"); return; } }
+  }
+  const el = e.target.closest("button"); if(!el) return;
+  if (el.id==="next"){ if(!validate()){ document.getElementById("hint").textContent = kind==="rank" ? t().lock_first : t().missing; return; }
+    if (sc==="start") DATA.consent_at = new Date().toISOString(); return go(1); }
+  if (el.id==="back") return go(-1);
+  if (el.dataset.notes) return openNotes(el.dataset.notes);
+  if (el.dataset.demo){ if (el.dataset.demo==="door") demo.door = el.dataset.v; else demo.full = el.dataset.v==="full";
+    const k = demoKey(); if (!DATA.tutorial.door_demo.includes(k)) DATA.tutorial.door_demo.push(k); render(); return; }
+  if (el.id==="ask"){ DATA.rank[tc].asked = true; DATA.rank[tc].asked_after_ms = Date.now()-enteredAt; render(); return; }
+  if (el.id==="lock"){ const d = DATA.rank[tc]; if (d.pool.length) return; d.locked = true; d.locked_order = [...d.slots]; d.locked_after_ms = Date.now()-enteredAt; d.locked_at = new Date().toISOString(); render(); return; }
+});
+app.addEventListener("keydown", e=>{
+  const el = e.target.closest("[data-hot]");
+  if (el && (e.key==="Enter"||e.key===" ")){ e.preventDefault(); el.dispatchEvent(new MouseEvent("click",{bubbles:true})); }
+});
+app.addEventListener("change", e=>{
+  const el = e.target, sc = SCREENS[idx], [kind,tc] = sc.split(":");
+  if (el.id==="consent"){ DATA.consent = el.checked; document.getElementById("next").disabled = !el.checked; return; }
+  if (sc==="about"){ DATA.about[el.name] = el.name==="tech" ? Number(el.value) : el.value; return; }
+  if (sc==="quiz" && el.name.startsWith("quiz")){ const i = Number(el.name.slice(4));
+    DATA.quiz["q"+(i+1)] = {answer:Number(el.value), correct:Number(el.value)===T.en.quiz[i].c}; render(); return; }
+  if (kind==="rate"){ const d = DATA.rate[tc];
+    if (el.name==="pref") d.pref = el.value;
+    else if (el.name==="mcq"){ d.mcq = Number(el.value); d.mcq_correct = d.mcq===SCENARIOS[tc].mcq.correct; }
+    else if (el.name.startsWith("lk_")){ const [,side,key] = el.name.split("_"); d.likert[side][key] = Number(el.value); }
+    document.getElementById("hint").textContent = ""; return; }
+  if (sc==="final" && el.name==="attn"){ DATA.final.attention = el.value; DATA.final.attention_passed = el.value==="blue"; }
+});
+app.addEventListener("input", e=>{
+  if (e.target.id==="fb1") DATA.final.unclear = e.target.value;
+  if (e.target.id==="fb2") DATA.final.improve = e.target.value;
+});
+document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{
+  lang = b.dataset.lang; (DATA.lang_switches ||= []).push({to:lang, screen:SCREENS[idx]}); render(); persist();
+}));
+document.getElementById("notes-tab").addEventListener("click",()=>{ openNotes("tab"); dismissHint(); });
+function dismissHint(){ if (DATA.notes_hint_done) return; DATA.notes_hint_done = true; DATA.notes_hint_at = SCREENS[idx]; renderNotes(); }
+document.getElementById("notes-hint").addEventListener("click", e=>{ if (e.target.id==="hint-ok") dismissHint(); });
+document.getElementById("notes").addEventListener("click", e=>{ if (e.target.id==="notes-close") document.getElementById("notes").classList.remove("open"); });
+
+/* ---------- saving ---------- */
+// Flat summary for the spreadsheet: A/B are mapped back to C0 (SmartEx baseline) and WIN (GPT-OSS + P1 + C2).
+function summary(){
+  const o = {pid, finished: !!DATA.finished_at, started: DATA.started, finished_at: DATA.finished_at||"",
+    lang_start: DATA.lang_start, context_mode: DATA.context_mode, order: DATA.order.join(" "),
+    age: DATA.about.age||"", smarthome_familiarity: DATA.about.tech||"", tech_background: DATA.about.techbg||"",
+    quiz_correct: Object.values(DATA.quiz).filter(q=>q.correct).length,
+    notes_opens: DATA.notes_opens.length, attention_passed: DATA.final.attention_passed ?? "",
+    feedback_unclear: DATA.final.unclear||"", feedback_improve: DATA.final.improve||""};
+  for (const tc of ["TC1","TC2","TC3"]){
+    const r = DATA.rank[tc], q = DATA.rate[tc], ab = DATA.ab[tc];
+    o[`${tc}_rank_locked`] = r.locked_order ? r.locked_order.join(" > ") : "";
+    o[`${tc}_rank_first`] = r.locked_order ? r.locked_order[0] : "";
+    o[`${tc}_rank_moves`] = r.moves;
+    o[`${tc}_rank_initial_pool`] = r.initial.join(" ");
+    o[`${tc}_A_is`] = ab.A;
+    o[`${tc}_preferred`] = q && q.pref ? ab[q.pref] : "";
+    for (const [k] of T.en.lik_items) for (const side of ["A","B"]) o[`${tc}_${ab[side]}_${k}`] = q ? (q.likert[side][k]||"") : "";
+    o[`${tc}_mcq_correct`] = q && q.mcq!==null ? q.mcq_correct : "";
+    o[`${tc}_time_rank_s`] = Math.round((DATA.timing["rank:"+tc]||0)/1000);
+    o[`${tc}_time_rate_s`] = Math.round((DATA.timing["rate:"+tc]||0)/1000);
+  }
+  o.total_time_min = Math.round(Object.values(DATA.timing).reduce((a,b)=>a+b,0)/60000*10)/10;
+  return o;
+}
+async function sendToSheet(finished){
+  if (!SETTINGS.SAVE_URL) return false;
+  const body = JSON.stringify({summary: summary(), raw: DATA});
+  for (let attempt=0; attempt<3; attempt++){
+    try{
+      // text/plain + no-cors avoids a CORS preflight; Apps Script still receives the body
+      await fetch(SETTINGS.SAVE_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body});
+      DATA.sent_ok = (DATA.sent_ok||0)+1; persist(); return true;
+    }catch(e){ await new Promise(r=>setTimeout(r, 1500*(attempt+1))); }
+  }
+  DATA.sent_failed = (DATA.sent_failed||0)+1; persist(); return false;
+}
+let dbRef = null;
+(async()=>{ try{ const db = await window.claude?.use?.("db"); if (db) dbRef = db.collection("responses").doc(pid); }catch(e){} })();
+async function saveProgress(){ if(!dbRef) return; try{ await dbRef.set({...DATA, finished:false, updated:new Date().toISOString()}); }catch(e){} }
+async function save(){
+  if (!DATA.finished_at) DATA.finished_at = new Date().toISOString();
+  const el = () => document.getElementById("savestate");
+  let ok = false;
+  if (SETTINGS.SAVE_URL) ok = await sendToSheet(true);
+  if (dbRef){ try{ await dbRef.set({...DATA, finished:true}); ok = true; }catch(e){} }
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  if (el()) el().innerHTML = ok ? esc(t().saved) : `${esc(t().notsaved)} <button type="button" class="btn small" id="retry">${t().retry}</button>`;
+}
+app.addEventListener("click", e=>{ if (e.target.id==="retry"){ e.target.disabled = true; save(); } });
+render();
+</script>
+</body>
+</html>
