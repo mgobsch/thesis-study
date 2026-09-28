@@ -196,14 +196,12 @@ const SETTINGS = {
   TEST_MODE: true,          // true = shows the collected data on the end screen (set false for the real study)
   SURVEY_RETURN_URL: "",    // optional link at the end ("" = no button)
   // Web-app URL of the Google Apps Script (see ANLEITUNG_Google_Tabelle.md). "" = do not send.
-  SAVE_URL: "",
+  SAVE_URL: "https://script.google.com/macros/s/AKfycbyBGfO6RDba2spBhiVWhUjT29SonANE-kgL7lo9TQwanpd7uWh-LdfHcrkZ4HKvY0Yj/exec",
   // Extra context in the office notes:
   //   "basic" = owners only (current choice)
   //   "all"   = owners + how often each rule was fired / explained in the past 90 days
   //   "split" = each participant is randomly assigned "all" or "basic"
-    CONTEXT_MODE: "basic",
-  // true = TC2 shows three explanations: C0 + WIN (Trial 1) + WIN2 (Trial 2). Switch on BEFORE data collection starts.
-  TC2_THREE_EXPLANATIONS: true,
+  CONTEXT_MODE: "basic",
 };
 
 /* 2) RULE STATISTICS (past 90 days, from system_data_summary.json) — only shown when CONTEXT_MODE is "all" */
@@ -220,6 +218,7 @@ const STATS = {
    3) RULES — every rule that changes the status light
       when = "Starts when", only = "Only if" (null = none), c = resulting light colour
    ===================================================================== */
+const EXPLANATION_TRIALS = { TC1:{C2:3, C3:2}, TC2:{C2:1, C3:1}, TC3:{C2:1, C3:2} };   // saved with every answer
 const LIGHT = { green:"var(--l-green)", orange:"var(--l-orange)", blue:"var(--l-blue)", off:"var(--l-off)" };
 const RULES = {
   notoccupied:{c:"green", owner:"Alice",
@@ -244,6 +243,7 @@ const RULES = {
 
 /* =====================================================================
    4) SCENARIOS — story (what the persona knows), facts, candidate foils, explanations
+      Explanations: C0 = SmartEx baseline (reworded), C2 / C3 = DeepSeek + P1 (trials listed in EXPLANATION_TRIALS)
    ===================================================================== */
 const SCENARIOS = {
   TC1: {
@@ -255,8 +255,12 @@ const SCENARIOS = {
     explanations:{
       C0:{en:"The meeting room status light is orange and not green because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht grün, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
-      WIN:{en:"Because the door sensor reported the meeting‑room door as closed and the motion sensor detected presence, the “Meeting Room Occupied” rule’s conditions were satisfied, so its action set the status light to orange. The “Meeting room not occupied” rule requires the motion sensor to be clear, which wasn’t the case, so it didn’t fire and the light stayed orange instead of green.",
-           de:"Weil der Türsensor die Tür des Besprechungsraums als geschlossen gemeldet hat und der Bewegungsmelder Anwesenheit erkannt hat, waren die Bedingungen der Regel „Besprechungsraum belegt“ erfüllt, sodass ihre Aktion das Statuslicht auf Orange gesetzt hat. Die Regel „Besprechungsraum nicht belegt“ setzt voraus, dass der Bewegungsmelder nichts erkennt, was nicht der Fall war; deshalb hat sie nicht ausgelöst und das Licht blieb orange statt grün."}
+      // DeepSeek + P1 + C2, Trial 3
+      C2:{en:"Alice, the meeting room status light is orange because the \"Meeting Room Occupied\" rule fired instead of the \"Meeting room not occupied\" rule you expected. This happened because the meeting room door was closed and motion was detected inside, which means the room is currently occupied. The \"Meeting room not occupied\" rule only turns the light green when there is no motion detected in the room, so it couldn't fire under these conditions.",
+          de:"Alice, die Statusanzeige des Besprechungsraums leuchtet orange, weil die Regel „Besprechungsraum belegt“ ausgelöst wurde und nicht die von dir erwartete Regel „Besprechungsraum nicht belegt“. Dies geschah, weil die Tür des Besprechungsraums geschlossen war und im Raum Bewegung erkannt wurde, was bedeutet, dass der Raum derzeit belegt ist. Die Regel „Besprechungsraum nicht belegt“ schaltet die Anzeige nur dann auf Grün, wenn im Raum keine Bewegung erkannt wird; daher konnte sie unter diesen Umständen nicht ausgelöst werden."},
+      // DeepSeek + P1 + C3, Trial 2
+      C3:{en:"The light is orange because the meeting room is currently occupied — motion was detected and the door is closed, so the 'Meeting Room Occupied' rule fired. It would have turned green only if the room were empty, with no motion detected, which is not the case right now.",
+          de:"Die Anzeige leuchtet orange, weil der Besprechungsraum derzeit belegt ist – es wurde eine Bewegung erkannt und die Tür ist geschlossen, sodass die Regel „Besprechungsraum belegt“ ausgelöst wurde. Die Anzeige wäre nur dann grün, wenn der Raum leer wäre und keine Bewegung erkannt würde, was derzeit nicht der Fall ist."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
       {en:"The door is closed and movement was detected in the meeting room.", de:"Die Tür ist zu und im Besprechungsraum wurde Bewegung erkannt."},
@@ -273,11 +277,12 @@ const SCENARIOS = {
     explanations:{
       C0:{en:"The meeting room status light is orange and not blue because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht blau, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
-      WIN:{en:"Because the door was closed and motion was detected, the system treated the meeting room as occupied and ran the rule that sets the status light to orange. Even though it was rainy at lunch, the occupancy rule takes priority, so the light stayed orange instead of turning blue.",
-           de:"Weil die Tür geschlossen war und Bewegung erkannt wurde, hat das System den Besprechungsraum als belegt behandelt und die Regel ausgeführt, die das Statuslicht auf Orange setzt. Obwohl es mittags regnerisch war, hat die Belegungsregel Vorrang, deshalb blieb das Licht orange, statt blau zu werden."},
-      // GPT-OSS + P1 + C2, Trial 2 (foil: Meeting Room Not Occupied). Only shown when TC2_THREE_EXPLANATIONS is true.
-      WIN2:{en:"Bob, the light is orange because the system detected motion in the meeting room while the door was closed, which matches the condition for the “room occupied” rule. Since motion was present, the “room not occupied” rule (which requires no motion) didn’t apply, so the green light wasn’t triggered.",
-           de:"Bob, das Licht ist orange, weil das System Bewegung im Besprechungsraum erkannt hat, während die Tür geschlossen war – das entspricht der Bedingung der Regel „Raum belegt“. Da Bewegung vorhanden war, galt die Regel „Raum nicht belegt“ (die keine Bewegung voraussetzt) nicht, deshalb wurde das grüne Licht nicht ausgelöst."}
+      // DeepSeek + P1 + C2, Trial 1
+      C2:{en:"Bob, the light is orange because the meeting room is actually occupied right now — the door is closed and motion was detected inside. The system only turns the light green when the room is empty, so since someone is in there, it correctly shows orange instead.",
+          de:"Bob, das Licht leuchtet orange, weil der Besprechungsraum gerade tatsächlich belegt ist – die Tür ist geschlossen und im Raum wurde eine Bewegung erkannt. Das System schaltet das Licht erst auf Grün, wenn der Raum leer ist. Da sich also jemand darin befindet, leuchtet es zu Recht orange."},
+      // DeepSeek + P1 + C3, Trial 1
+      C3:{en:"The light is orange because the meeting room is currently occupied, as motion was detected and the door is closed. If the room were empty, the light would have turned green instead, but since motion was detected, the system kept it orange to show the room is in use.",
+          de:"Die Leuchte leuchtet orange, da der Besprechungsraum derzeit belegt ist, da eine Bewegung erkannt wurde und die Tür geschlossen ist. Wäre der Raum leer, hätte die Leuchte stattdessen grün geleuchtet, doch da eine Bewegung erkannt wurde, hat das System die orangefarbene Anzeige beibehalten, um anzuzeigen, dass der Raum belegt ist."}
     },
     mcq:{ q:{en:"According to the explanations, which rule turned the status light orange?", de:"Welche Regel hat das Statuslicht laut den Erklärungen orange geschaltet?"}, correct:1, opts:[
       {en:"Rain at Lunch", de:"Regen zur Mittagszeit"},
@@ -294,8 +299,12 @@ const SCENARIOS = {
     explanations:{
       C0:{en:"The meeting room status light is off and not green because not all preconditions are met: No motion in the meeting room, and the Contact Sensor Meeting Room is open.",
           de:"Die Statusanzeige des Besprechungsraums ist ausgeschaltet und nicht grün, weil nicht alle Voraussetzungen erfüllt sind: keine Bewegung im Besprechungsraum erkannt, und der Kontaktsensor des Besprechungsraums ist offen."},
-      WIN:{en:"The “Meeting room not occupied” rule only activates when the door sensor registers a new “on” (opening) event and then sees no motion; at 08:00 the door was already open and no fresh opening trigger occurred, so the rule never fired. Because the rule didn’t run, the meeting‑room status light stayed off.",
-           de:"Die Regel „Besprechungsraum nicht belegt“ wird nur aktiv, wenn der Türsensor ein neues „on“-Ereignis (Öffnen) registriert und danach keine Bewegung erkennt; um 08:00 war die Tür bereits offen und es gab kein neues Öffnungsereignis, deshalb hat die Regel nie ausgelöst. Weil die Regel nicht lief, blieb das Statuslicht des Besprechungsraums aus."}
+      // DeepSeek + P1 + C2, Trial 1
+      C2:{en:"Alice, the \"Meeting room not occupied\" rule didn't fire because, although the door contact sensor was open, the system requires the motion sensor to be clear as well—which it was—but the rule's trigger condition wasn't fully met at that moment. Since the rule's preconditions weren't satisfied, no automation activated, leaving the status light off.",
+          de:"Alice, die Regel „Besprechungsraum nicht belegt“ wurde nicht ausgelöst, da zwar der Türkontaktsensor offen war, das System jedoch zusätzlich verlangt, dass der Bewegungssensor frei ist – was auch der Fall war –, die Auslösebedingung der Regel in diesem Moment jedoch nicht vollständig erfüllt war. Da die Voraussetzungen der Regel nicht erfüllt waren, wurde keine Automatisierung aktiviert, sodass die Statusleuchte ausgeschaltet blieb."},
+      // DeepSeek + P1 + C3, Trial 2
+      C3:{en:"The light is off because no rule fired, even though the meeting room door is open. The 'Meeting room occupied' rule would have turned the light orange, but it requires motion to be detected in the room, and the motion sensor shows the room is clear. So, since the room is empty, the system correctly left the light off.",
+          de:"Das Licht ist ausgeschaltet, da keine Regel ausgelöst wurde, obwohl die Tür zum Besprechungsraum offen ist. Die Regel „Besprechungsraum belegt“ hätte das Licht orange leuchten lassen, doch dafür muss im Raum eine Bewegung erkannt werden, und der Bewegungssensor zeigt an, dass der Raum leer ist. Da der Raum also leer ist, hat das System das Licht korrekterweise ausgeschaltet."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light off?", de:"Warum ist das Statuslicht laut den Erklärungen aus?"}, correct:0, opts:[
       {en:"“Meeting Room Not Occupied” did not start, because the door was not newly opened.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil die Tür nicht neu geöffnet wurde."},
@@ -360,7 +369,7 @@ const T = {
   lock:"Lock in my order", locked:"Your order is locked in.", lock_first:"Please lock in your order to continue.",
   bot_thanks:"Thank you! On the next page you will see my explanation.",
   rate_h:"Rate the explanations",
-  rate_p:"Here are two explanations from SmartEx for your question. Please read both carefully and rate each one.",
+  rate_p:n=>n===3 ? "Here are three explanations from SmartEx for your question. Please read all three carefully and rate each one." : "Here are two explanations from SmartEx for your question. Please read both carefully and rate each one.",
   your_q:"Your question", expl:"Explanation", pref:"Which explanation do you prefer?",
   lik_items:[["clear","The explanation is clear."],["underst","The explanation is easy to understand."],["helpful","The explanation is helpful."],["natural","The explanation sounds natural."],["trust","I would trust this explanation."]],
   lik_scale:["1 = strongly disagree","5 = strongly agree"],
@@ -419,14 +428,14 @@ const T = {
   ask_h:"Frag SmartEx",
   st:{time:"Uhrzeit", weather:"Wetter", rain:"Regen", sun:"Sonnig", door:"Tür Besprechungsraum", crack:"einen Spalt offen", closed:"zu", light:"Statuslicht", green:"grün", orange:"orange", blue:"blau", off:"aus"},
   ask_btn:q=>`Frag SmartEx: „${q}“`, bot:"SmartEx", me:"Du",
-  bot_back:"Bevor ich antworte: Was hast du statt dem gezeigtem Statuslichts erwartet? Bring diese Regeln in eine Reihenfolge.",
+  bot_back:"Bevor ich antworte: Was hast du statt des gezeigten Statuslichts erwartet? Bring diese Regeln in eine Reihenfolge.",
   rank_help:"Ziehe jede Regel auf einen nummerierten Platz (oder tippe eine Regel an und dann einen Platz). Platz 1 = die Regel, die du am meisten erwartet hast. Du kannst die Regeln verschieben, bis du deine Reihenfolge festlegst. Details zu jeder Regel findest du in der Büronotiz.",
   top:"am meisten erwartet", bottom:"am wenigsten erwartet", pool_lbl:"Noch nicht eingeordnet", pool_empty:"Alle Regeln sind eingeordnet.", slots_lbl:"Deine Reihenfolge",
   your_rule:"Deine Regel",
   lock:"Reihenfolge festlegen", locked:"Deine Reihenfolge ist festgelegt.", lock_first:"Bitte lege deine Reihenfolge fest, um weiterzumachen.",
   bot_thanks:"Danke! Auf der nächsten Seite siehst du meine Erklärung.",
   rate_h:"Bewerte die Erklärungen",
-  rate_p:"Hier sind zwei Erklärungen von SmartEx zu deiner Frage. Bitte lies beide aufmerksam und bewerte jede einzeln.",
+  rate_p:n=>n===3 ? "Hier sind drei Erklärungen von SmartEx zu deiner Frage. Bitte lies alle drei aufmerksam und bewerte jede einzeln." : "Hier sind zwei Erklärungen von SmartEx zu deiner Frage. Bitte lies beide aufmerksam und bewerte jede einzeln.",
   your_q:"Deine Frage", expl:"Erklärung", pref:"Welche Erklärung gefällt dir besser?",
   lik_items:[["clear","Die Erklärung ist klar."],["underst","Die Erklärung ist leicht zu verstehen."],["helpful","Die Erklärung ist hilfreich."],["natural","Die Erklärung klingt natürlich."],["trust","Ich würde dieser Erklärung vertrauen."]],
   lik_scale:["1 = stimme gar nicht zu","5 = stimme voll zu"],
@@ -460,8 +469,7 @@ let DATA = {
   consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[]
 };
 for (const tc of ["TC1","TC2","TC3"]) {
-    if (tc==="TC2" && SETTINGS.TC2_THREE_EXPLANATIONS){ const o3 = shuffle(["C0","WIN","WIN2"]); DATA.ab[tc] = {A:o3[0], B:o3[1], C:o3[2]}; }
-  else DATA.ab[tc] = Math.random()<.5 ? {A:"C0",B:"WIN"} : {A:"WIN",B:"C0"};
+  const o3 = shuffle(["C0","C2","C3"]); DATA.ab[tc] = {A:o3[0], B:o3[1], C:o3[2]};   // random order of the three explanations
   DATA.mcq_order = DATA.mcq_order || {}; DATA.mcq_order[tc] = shuffle([0,1,2,3]);
   const initial = shuffle(SCENARIOS[tc].foils);
   DATA.rank[tc] = {initial, pool:[...initial], slots:Array(initial.length).fill(null), moves:0, asked:false, locked:false, log:[]};
@@ -709,7 +717,7 @@ function rateScreen(tc){
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
   const answer = side => `<div class="card answer ${side==="B"?"b":""}"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
     <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2><p>${tt.rate_p}</p>
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2><p>${tt.rate_p(sides(tc).length)}</p>
    <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
    <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
    <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",sides(tc).map(x=>tt.expl+" "+x),d.pref,sides(tc))}</fieldset></div>
@@ -852,7 +860,7 @@ document.getElementById("notes-hint").addEventListener("click", e=>{ if (e.targe
 document.getElementById("notes").addEventListener("click", e=>{ if (e.target.id==="notes-close") document.getElementById("notes").classList.remove("open"); });
 
 /* ---------- saving ---------- */
-// Flat summary for the spreadsheet: A/B are mapped back to C0 (SmartEx baseline) and WIN (GPT-OSS + P1 + C2).
+// Flat summary for the spreadsheet: A/B/C are mapped back to C0 (SmartEx baseline), C2 and C3 (DeepSeek + P1).
 function summary(){
   const o = {pid, finished: !!DATA.finished_at, started: DATA.started, finished_at: DATA.finished_at||"",
     lang_start: DATA.lang_start, context_mode: DATA.context_mode, order: DATA.order.join(" "),
@@ -867,14 +875,15 @@ function summary(){
     o[`${tc}_rank_moves`] = r.moves;
     o[`${tc}_rank_initial_pool`] = r.initial.join(" ");
     o[`${tc}_A_is`] = ab.A;
-    if (ab.C) o[`${tc}_C_is`] = ab.C;
+    o[`${tc}_B_is`] = ab.B; o[`${tc}_C_is`] = ab.C;
+    o[`${tc}_C2_trial`] = EXPLANATION_TRIALS[tc].C2; o[`${tc}_C3_trial`] = EXPLANATION_TRIALS[tc].C3;
     o[`${tc}_preferred`] = q && q.pref ? ab[q.pref] : "";
     for (const [k] of T.en.lik_items) for (const side of sides(tc)) o[`${tc}_${ab[side]}_${k}`] = q ? (q.likert[side][k]||"") : "";
     o[`${tc}_mcq_correct`] = q && q.mcq!==null ? q.mcq_correct : "";
     o[`${tc}_time_rank_s`] = Math.round((DATA.timing["rank:"+tc]||0)/1000);
     o[`${tc}_time_rate_s`] = Math.round((DATA.timing["rate:"+tc]||0)/1000);
   }
-  o.tc2_three = !!DATA.ab.TC2.C;
+  o.model = "DeepSeek P1";
   o.total_time_min = Math.round(Object.values(DATA.timing).reduce((a,b)=>a+b,0)/60000*10)/10;
   return o;
 }
