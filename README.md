@@ -23,7 +23,7 @@ The study takes about 15–20 minutes and works in English and German (switch at
 9. **Three situations (random order),** each with three steps:
    - **Story:** what the persona sees at that moment
    - **Ask SmartEx:** the participant asks why the light looks the way it does, and ranks the rules by what they expected instead (drag and drop, then "Lock in my order")
-   - **Rate the explanations:** three explanations (A, B and C) are rated on clarity, understandability, helpfulness, naturalness and trust, followed by a preference and a comprehension question
+   - **Rate the explanations:** two or three explanations (A, B and C, depending on `VARIANT`) are rated on clarity, understandability, helpfulness, naturalness and trust, followed by a preference and a comprehension question
 10. **Final questions:** attention check and optional feedback
 11. **End:** answers are sent to the Google Sheet
 
@@ -35,18 +35,32 @@ The study takes about 15–20 minutes and works in English and German (switch at
 | TC2 | Bob | 12:10, rain, lunchtime. Bob's "Rain at Lunch" rule should turn the light blue. People are standing in the hallway, the door is closed. | orange |
 | TC3 | Alice | 08:00, sunny. Alice arrives in the morning, the door is slightly open, the room is empty. | off |
 
-### The three explanations
+### The explanations
 
-In each situation, participants rate three explanations in random order (they only see "A", "B" and "C"):
+In each situation, participants rate the explanations in random order (they only see "A", "B" and "C"):
 
 - **C0:** the SmartEx baseline explanation (reworded for readability)
-- **C2:** DeepSeek + prompt P1 (zero-shot) + configuration C2 (LLM-weighted TOPSIS)
-- **C3:** DeepSeek + prompt P1 (zero-shot) + configuration C3 (LLM foil selection)
+- **C2:** GPT-OSS + prompt P1 (zero-shot) + configuration C2 (LLM-weighted TOPSIS)
+- **C3:** GPT-OSS + prompt P1 (zero-shot) + configuration C3 (LLM foil selection)
+
+The setting `VARIANT` decides which ones are shown (same for all participants):
+
+| `VARIANT` | Explanations per situation |
+|---|---|
+| `"C2_C3"` (default) | C0 + C2 + C3 (three) |
+| `"C2"` | C0 + C2 (two) |
 
 The same trial is used for every participant. Only trials without hallucinations were chosen:
 
 | Situation | C2 | C3 |
 |---|---|---|
+| TC1 | Trial 2 | Trial 1 |
+| TC2 | Trial 2 | Trial 1 |
+| TC3 | Trial 1 | Trial 3 |
+
+The German explanations are DeepL translations of the English originals.
+
+---|---|---|
 | TC1 | Trial 3 | Trial 2 |
 | TC2 | Trial 1 | Trial 1 |
 | TC3 | Trial 1 | Trial 2 |
@@ -96,7 +110,8 @@ To analyse the data in Excel: open the Google Sheet → **File → Download → 
 | `TC1_rank_first` | the rule ranked first (the expected foil) |
 | `TC1_rank_moves` | how often tiles were moved |
 | `TC1_A_is`, `TC1_B_is`, `TC1_C_is` | which explanation was shown as A, B and C (C0, C2 or C3) |
-| `TC1_C2_trial`, `TC1_C3_trial` | which DeepSeek trial was used |
+| `TC1_C2_trial`, `TC1_C3_trial` | which GPT-OSS trial was used (C3 empty in variant "C2") |
+| `variant`, `model` | which variant was running, and the model (GPT-OSS P1) |
 | `TC1_preferred` | preferred explanation: **C0**, **C2** or **C3** |
 | `TC1_C0_clear` … `TC1_C3_trust` | Likert ratings 1–5, already mapped to C0, C2 and C3 |
 | `TC1_mcq_correct` | comprehension question correct (TRUE/FALSE) |
@@ -128,6 +143,7 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 | `TEST_MODE` | `true` / `false` | `true` shows the collected data on the end screen. **Set to `false` before the real study.** |
 | `SAVE_URL` | web-app URL | where answers are sent (Google Apps Script) |
 | `SURVEY_RETURN_URL` | URL or `""` | optional button on the end screen, e.g. to a follow-up survey |
+| `VARIANT` | `"C2_C3"` / `"C2"` | three explanations (C0 + C2 + C3) or two (C0 + C2) |
 | `CONTEXT_MODE` | `"basic"` / `"all"` / `"split"` | `basic` = owners only in the office note; `all` = also how often rules were fired and explained; `split` = random 50/50 per participant |
 
 ### Editing tips
