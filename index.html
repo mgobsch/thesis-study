@@ -201,7 +201,9 @@ const SETTINGS = {
   //   "basic" = owners only (current choice)
   //   "all"   = owners + how often each rule was fired / explained in the past 90 days
   //   "split" = each participant is randomly assigned "all" or "basic"
-  CONTEXT_MODE: "basic",
+    CONTEXT_MODE: "basic",
+  // true = TC2 shows three explanations: C0 + WIN (Trial 1) + WIN2 (Trial 2). Switch on BEFORE data collection starts.
+  TC2_THREE_EXPLANATIONS: false,
 };
 
 /* 2) RULE STATISTICS (past 90 days, from system_data_summary.json) — only shown when CONTEXT_MODE is "all" */
@@ -272,7 +274,10 @@ const SCENARIOS = {
       C0:{en:"The Status Light is orange and not blue because Occupancy of meeting room is Detected, Contact Sensor Meeting Room Opening is off.",
           de:"Das Statuslicht ist orange und nicht blau, weil Belegung des Besprechungsraums ist Erkannt, Kontaktsensor Öffnung Besprechungsraum ist aus."},
       WIN:{en:"Because the door was closed and motion was detected, the system treated the meeting room as occupied and ran the rule that sets the status light to orange. Even though it was rainy at lunch, the occupancy rule takes priority, so the light stayed orange instead of turning blue.",
-           de:"Weil die Tür geschlossen war und Bewegung erkannt wurde, hat das System den Besprechungsraum als belegt behandelt und die Regel ausgeführt, die das Statuslicht auf Orange setzt. Obwohl es mittags regnerisch war, hat die Belegungsregel Vorrang, deshalb blieb das Licht orange, statt blau zu werden."}
+           de:"Weil die Tür geschlossen war und Bewegung erkannt wurde, hat das System den Besprechungsraum als belegt behandelt und die Regel ausgeführt, die das Statuslicht auf Orange setzt. Obwohl es mittags regnerisch war, hat die Belegungsregel Vorrang, deshalb blieb das Licht orange, statt blau zu werden."},
+      // GPT-OSS + P1 + C2, Trial 2 (foil: Meeting Room Not Occupied). Only shown when TC2_THREE_EXPLANATIONS is true.
+      WIN2:{en:"Bob, the light is orange because the system detected motion in the meeting room while the door was closed, which matches the condition for the “room occupied” rule. Since motion was present, the “room not occupied” rule (which requires no motion) didn’t apply, so the green light wasn’t triggered.",
+           de:"Bob, das Licht ist orange, weil das System Bewegung im Besprechungsraum erkannt hat, während die Tür geschlossen war – das entspricht der Bedingung der Regel „Raum belegt“. Da Bewegung vorhanden war, galt die Regel „Raum nicht belegt“ (die keine Bewegung voraussetzt) nicht, deshalb wurde das grüne Licht nicht ausgelöst."}
     },
     mcq:{ q:{en:"According to the explanations, which rule turned the status light orange?", de:"Welche Regel hat das Statuslicht laut den Erklärungen orange geschaltet?"}, correct:1, opts:[
       {en:"Rain at Lunch", de:"Regen zur Mittagszeit"},
@@ -455,7 +460,8 @@ let DATA = {
   consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[]
 };
 for (const tc of ["TC1","TC2","TC3"]) {
-  DATA.ab[tc] = Math.random()<.5 ? {A:"C0",B:"WIN"} : {A:"WIN",B:"C0"};
+    if (tc==="TC2" && SETTINGS.TC2_THREE_EXPLANATIONS){ const o3 = shuffle(["C0","WIN","WIN2"]); DATA.ab[tc] = {A:o3[0], B:o3[1], C:o3[2]}; }
+  else DATA.ab[tc] = Math.random()<.5 ? {A:"C0",B:"WIN"} : {A:"WIN",B:"C0"};
   DATA.mcq_order = DATA.mcq_order || {}; DATA.mcq_order[tc] = shuffle([0,1,2,3]);
   const initial = shuffle(SCENARIOS[tc].foils);
   DATA.rank[tc] = {initial, pool:[...initial], slots:Array(initial.length).fill(null), moves:0, asked:false, locked:false, log:[]};
@@ -694,9 +700,10 @@ function rankScreen(tc){
   return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>
     <div class="scene">${officeSVG(s)}</div>${statusChips(s)}${chat}${nav(d.locked)}`;
 }
+const sides = tc => DATA.ab[tc].C ? ["A","B","C"] : ["A","B"];   // explanation labels shown for this situation
 function rateScreen(tc){
   const s = SCENARIOS[tc], tt = t(), ab = DATA.ab[tc];
-  const d = DATA.rate[tc] || (DATA.rate[tc] = {pref:null, likert:{A:{},B:{}}, mcq:null});
+  const d = DATA.rate[tc] || (DATA.rate[tc] = {pref:null, likert:{A:{},B:{},C:{}}, mcq:null});
   const likert = side => tt.lik_items.map(([key,label])=>`<div class="lik"><div class="q">${esc(label)}</div>
     <div class="pills" role="radiogroup" aria-label="${esc(label)}">${[1,2,3,4,5].map(v=>`<label><input type="radio" name="lk_${side}_${key}" value="${v}" ${d.likert[side][key]===v?"checked":""}><span>${v}</span></label>`).join("")}</div>
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
@@ -704,12 +711,12 @@ function rateScreen(tc){
     <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
   return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2><p>${tt.rate_p}</p>
    <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
-   <div class="stack" style="margin-top:14px">${answer("A")}${answer("B")}</div>
-   <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",[tt.expl+" A",tt.expl+" B"],d.pref,["A","B"])}</fieldset></div>
+   <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
+   <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",sides(tc).map(x=>tt.expl+" "+x),d.pref,sides(tc))}</fieldset></div>
    <div class="card" style="margin-top:14px"><h3 style="margin-top:0">${tt.mcq_h}</h3><fieldset style="margin:0"><legend>${esc(s.mcq.q[lang])}</legend>${radios("mcq",DATA.mcq_order[tc].map(i=>s.mcq.opts[i][lang]),d.mcq,DATA.mcq_order[tc])}</fieldset></div>
    ${nav(true)}`;
 }
-const rateComplete = tc => { const d = DATA.rate[tc]; return !!(d && d.pref && d.mcq!==null && ["A","B"].every(sd=>T.en.lik_items.every(([k])=>d.likert[sd][k]))); };
+const rateComplete = tc => { const d = DATA.rate[tc]; return !!(d && d.pref && d.mcq!==null && sides(tc).every(sd=>T.en.lik_items.every(([k])=>d.likert[sd][k]))); };
 
 /* ---------- ranking interactions ---------- */
 const ui = {sel:null, drag:null};
@@ -860,12 +867,14 @@ function summary(){
     o[`${tc}_rank_moves`] = r.moves;
     o[`${tc}_rank_initial_pool`] = r.initial.join(" ");
     o[`${tc}_A_is`] = ab.A;
+    if (ab.C) o[`${tc}_C_is`] = ab.C;
     o[`${tc}_preferred`] = q && q.pref ? ab[q.pref] : "";
-    for (const [k] of T.en.lik_items) for (const side of ["A","B"]) o[`${tc}_${ab[side]}_${k}`] = q ? (q.likert[side][k]||"") : "";
+    for (const [k] of T.en.lik_items) for (const side of sides(tc)) o[`${tc}_${ab[side]}_${k}`] = q ? (q.likert[side][k]||"") : "";
     o[`${tc}_mcq_correct`] = q && q.mcq!==null ? q.mcq_correct : "";
     o[`${tc}_time_rank_s`] = Math.round((DATA.timing["rank:"+tc]||0)/1000);
     o[`${tc}_time_rate_s`] = Math.round((DATA.timing["rate:"+tc]||0)/1000);
   }
+  o.tc2_three = !!DATA.ab.TC2.C;
   o.total_time_min = Math.round(Object.values(DATA.timing).reduce((a,b)=>a+b,0)/60000*10)/10;
   return o;
 }
