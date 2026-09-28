@@ -131,6 +131,12 @@ body.hinting .notes-tab{outline:4px solid #D92D20;outline-offset:3px;animation:r
   .hint-arrow{bottom:-27px;right:30px;border-top-color:#D92D20}}
 @media (prefers-reduced-motion:reduce){body.hinting #notes,body.hinting .notes-tab{animation:none}}
 @keyframes flash{50%{box-shadow:0 0 0 6px var(--accent)}}
+/* "What to do" box + persona label */
+.task{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel));border-radius:10px;padding:12px 16px;margin:0 0 18px}
+.task .th{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-bottom:4px}
+.task ol{margin:0;padding-left:1.3em}.task li+li{margin-top:2px}.task p{margin:0}
+.persona{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:3px 12px 3px 4px;font-size:15px;margin:0 0 14px}
+.persona svg{width:26px;height:26px}
 /* chat */
 .chat{display:flex;flex-direction:column;gap:10px;margin-top:16px}
 .msg{max-width:92%;padding:10px 14px;border-radius:14px}
@@ -153,7 +159,7 @@ body.hinting .notes-tab{outline:4px solid #D92D20;outline-offset:3px;animation:r
 .tile.src{opacity:.35}
 .drop-hi{border-color:var(--accent)!important;background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
 .locked .tile{cursor:default}
-.yours{display:inline-block;font-size:12px;font-weight:700;background:var(--you);color:#3B3413;border-radius:4px;padding:0 6px}
+.yours{display:inline-block;font-size:12px;font-weight:700;background:var(--line);color:var(--muted);border-radius:4px;padding:0 6px}
 .lockmsg{margin-top:10px;font-weight:700;color:var(--ok)}
 /* rating */
 .answer{border-top:6px solid var(--accent)}
@@ -319,6 +325,23 @@ const SCENARIOS = {
    ===================================================================== */
 const T = {
  en:{
+  task_h:"What to do",
+  tasks:{
+   start:["Read the information.","Tick the box if you agree.","Click “Continue”."],
+   about:["Answer the three questions. There are no right or wrong answers."],
+   office:["Read the text about the office and SmartEx. Then click “Continue”."],
+   devices:["Click each of the 7 highlighted devices and read what it does. “Continue” unlocks when you have seen all of them."],
+   door:["Set the door to “Slightly open”.","Switch between “Empty” and “People inside” and look through the gap."],
+   rules:["Read each rule from top to bottom. You don't need to memorise them; they are always in the office note."],
+   people:["Read who Alice and Bob are. You will take on their role later."],
+   quiz:["Answer the 3 questions. You will see the right answer straight away."],
+   story:["Read the situation carefully and imagine you are this person."],
+   rank:["Look at the office picture.","Click the question button.","Put the rules in order by what you expected instead.","Click “Lock in my order”."],
+   rate:["Read all three explanations.","Rate each one on the 5 statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
+   final:["Answer the check question. The two feedback questions are optional."]},
+  rate_persona:p=>`SmartEx adapts its explanations to the person asking. Rate them from the point of view of ${p}.`,
+  rate_note:"The explanations were generated automatically. Some may be unclear or not fully correct. Please rate each one honestly, the way you understand it.",
+  persona:{Alice:"You are Alice · knows a bit about technology", Bob:"You are Bob · not technical, prefers everyday language"},
   brand:"Smart office study", next:"Continue", back:"Back", missing:"Please answer all questions to continue.",
   start_h:"Welcome to the smart office", start_p:"In this study you will look at a smart office, where sensors and rules control things automatically. You will take on the role of Alice or Bob, two people who work there, and see situations from their point of view. The study takes about 15–20 minutes.",
   start_p2:"Your answers are anonymous and only used for a bachelor's thesis at the University of Cologne. You can stop at any time.",
@@ -385,6 +408,23 @@ const T = {
   n_stats:(r,a,b)=>`Fired ${r}× · explained to Alice ${a}× and Bob ${b}× (past 90 days)`,
  },
  de:{
+  task_h:"Deine Aufgabe",
+  tasks:{
+   start:["Lies die Informationen.","Setze den Haken, wenn du einverstanden bist.","Klicke auf „Weiter“."],
+   about:["Beantworte die drei Fragen. Es gibt keine richtigen oder falschen Antworten."],
+   office:["Lies den Text über das Büro und SmartEx. Klicke dann auf „Weiter“."],
+   devices:["Klicke auf jedes der 7 markierten Geräte und lies, was es macht. „Weiter“ wird aktiv, wenn du alle angesehen hast."],
+   door:["Stelle die Tür auf „Einen Spalt offen“.","Wechsle zwischen „Leer“ und „Leute drin“ und schau durch den Spalt."],
+   rules:["Lies jede Regel von oben nach unten. Du musst sie dir nicht merken – sie stehen immer in der Büronotiz."],
+   people:["Lies, wer Alice und Bob sind. Später schlüpfst du in ihre Rolle."],
+   quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
+   story:["Lies die Situation aufmerksam und stell dir vor, du bist diese Person."],
+   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Bring die Regeln in eine Reihenfolge – danach, was du stattdessen erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
+   rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
+   final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
+  rate_persona:p=>`SmartEx passt seine Erklärungen an die fragende Person an. Bewerte sie aus der Sicht von ${p}.`,
+  rate_note:"Die Erklärungen wurden automatisch erstellt. Manche sind vielleicht unklar oder nicht ganz richtig. Bitte bewerte jede ehrlich so, wie du sie verstehst.",
+  persona:{Alice:"Du bist Alice · kennt sich ein bisschen mit Technik aus", Bob:"Du bist Bob · nicht technisch, mag einfache Alltagssprache"},
   brand:"Studie: Smartes Büro", next:"Weiter", back:"Zurück", missing:"Bitte beantworte alle Fragen, um fortzufahren.",
   start_h:"Willkommen im smarten Büro", start_p:"In dieser Studie schaust du dir ein smartes Büro an, in dem Sensoren und Regeln vieles automatisch steuern. Du schlüpfst in die Rolle von Alice oder Bob, die dort arbeiten, und siehst Situationen aus ihrer Sicht. Die Studie dauert etwa 15–20 Minuten.",
   start_p2:"Deine Antworten sind anonym und werden nur für eine Bachelorarbeit an der Universität zu Köln verwendet. Du kannst jederzeit abbrechen.",
@@ -596,7 +636,7 @@ function notesHTML(){
   const rules = Object.entries(RULES).map(([id,r])=>`<div class="nrule">${ruleBlock(id)}<div class="own">${tt.n_owner}: <b>${r.owner}</b></div>
     ${contextMode==="all"?`<div class="own">${tt.n_stats(STATS[id].ran,STATS[id].explained.Alice,STATS[id].explained.Bob)}</div>`:""}</div>`).join("");
   return `<div class="pin" aria-hidden="true"></div><div class="notes-head"><h3>${tt.notes_title}</h3><button type="button" class="btn ghost small notes-close" id="notes-close">${tt.close}</button></div>
-    ${tc?`<div class="sec"><b>${tt.n_story}</b><p style="margin:.3em 0 0">${esc(SCENARIOS[tc].story[lang])}</p></div>`:""}
+    ${tc?`<div class="sec"><b>${tt.n_story}</b><p style="margin:.3em 0 0"><i>${esc(tt.persona[SCENARIOS[tc].person])}</i></p><p style="margin:.3em 0 0">${esc(SCENARIOS[tc].story[lang])}</p></div>`:""}
     <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
     <div class="sec"><b>${tt.n_rules}</b>${rules}</div>`;
 }
@@ -633,40 +673,40 @@ const demoDone = () => ["crack-empty","crack-full"].every(k=>DATA.tutorial.door_
 
 /* ---------- screens ---------- */
 const R = {
- start(){ return `<h1>${t().start_h}</h1><p>${t().start_p}</p><p class="muted">${t().start_p2}</p>
+ start(){ return `<h1>${t().start_h}</h1>${taskBox("start")}<p>${t().start_p}</p><p class="muted">${t().start_p2}</p>
    <label class="opt"><input type="checkbox" id="consent" ${DATA.consent?"checked":""}><span>${t().consent}</span></label>${nav(DATA.consent)}`; },
  about(){ const a = DATA.about;
-   return `<h2>${t().about_h}</h2>
+   return `<h2>${t().about_h}</h2>${taskBox("about")}
    <fieldset><legend>${t().age}</legend>${radios("age",t().ages,a.age,T.en.ages)}</fieldset>
    <fieldset><legend>${t().tech}</legend>${radios("tech",t().techs,a.tech,[1,2,3,4])}</fieldset>
    <fieldset><legend>${t().techbg}</legend>${radios("techbg",t().yesno,a.techbg,["yes","no"])}</fieldset>${nav(true)}`; },
- office(){ return `<h2>${t().office_h}</h2><div class="scene">${officeSVG(DEFAULT_STATE)}</div>
+ office(){ return `<h2>${t().office_h}</h2>${taskBox("office")}<div class="scene">${officeSVG(DEFAULT_STATE)}</div>
    <p style="margin-top:16px">${t().office_p}</p><p>${t().office_p2}</p>
    <h3>${t().smartex_h}</h3><p>${t().smartex_p}</p>${nav(true)}`; },
  devices(){ const k = openDev;
-   return `<h2>${t().dev_h}</h2><p>${t().dev_p}</p><div class="scene">${officeSVG(DEFAULT_STATE,true)}</div>
+   return `<h2>${t().dev_h}</h2>${taskBox("devices")}<p>${t().dev_p}</p><div class="scene">${officeSVG(DEFAULT_STATE,true)}</div>
    ${k?`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">${esc(t().dev[k][0])}</h3><p style="margin:0">${esc(t().dev[k][1])}</p>
 </div>`:""}
    <p class="muted">${DATA.tutorial.seen.length} / 7 ${t().dev_seen}</p>${nav(DATA.tutorial.seen.length===7)}`; },
  door(){ const tt = t();
    const seg = (name, opts, cur) => `<div class="seg" role="group">${Object.entries(opts).map(([v,l])=>`<button type="button" data-demo="${name}" data-v="${v}" aria-pressed="${String(cur)===v}">${esc(l)}</button>`).join("")}</div>`;
-   return `<h2>${tt.door_h}</h2><p>${tt.door_p}</p>
+   return `<h2>${tt.door_h}</h2>${taskBox("door")}<p>${tt.door_p}</p>
    <div class="scene">${officeSVG({...DEFAULT_STATE, door:demo.door, full:demo.full, light:"off"})}</div>
    <div class="controls"><div><span class="lbl">${tt.door_lbl}</span>${seg("door",tt.door_opts,demo.door)}</div>
      <div><span class="lbl">${tt.room_lbl}</span>${seg("full",tt.room_opts,demo.full?"full":"empty")}</div></div>
    ${demoDone()?"":`<p class="muted" style="margin-top:12px">${tt.door_todo}</p>`}${nav(demoDone())}`; },
- rules(){ return `<h2>${t().rules_h}</h2><p>${t().rules_p}</p><p class="muted">${t().office_p2}</p>
+ rules(){ return `<h2>${t().rules_h}</h2>${taskBox("rules")}<p>${t().rules_p}</p><p class="muted">${t().office_p2}</p>
    <div class="grid">${Object.keys(RULES).map(id=>`<div class="card rule" style="--c:${LIGHT[RULES[id].c]}">${ruleBlock(id)}</div>`).join("")}</div>${nav(true)}`; },
- people(){ return `<h2>${t().people_h}</h2><p>${t().people_p}</p><div class="stack">
+ people(){ return `<h2>${t().people_h}</h2>${taskBox("people")}<p>${t().people_p}</p><div class="stack">
    <div class="card person">${avatar("Alice")}<div><b>Alice</b><div>${t().alice}</div></div></div>
    <div class="card person">${avatar("Bob")}<div><b>Bob</b><div>${t().bob}</div></div></div></div>${nav(true)}`; },
- quiz(){ return `<h2>${t().quiz_h}</h2><p>${t().quiz_p}</p>${t().quiz.map((q,i)=>{
+ quiz(){ return `<h2>${t().quiz_h}</h2>${taskBox("quiz")}<p>${t().quiz_p}</p>${t().quiz.map((q,i)=>{
      const a = DATA.quiz["q"+(i+1)];
      const fb = !a?"":(a.answer===q.c?`<div class="feedback ok">${t().right}</div>`:`<div class="feedback no">${t().wrong}${esc(q.o[q.c])}</div>`);
      return `<fieldset><legend>${i+1}. ${esc(q.q)}</legend>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="quiz${i}" value="${j}" ${a&&a.answer===j?"checked":""} ${a?"disabled":""}><span>${esc(o)}</span></label>`).join("")}${fb}</fieldset>`;}).join("")}
    ${nav(Object.keys(DATA.quiz).length===t().quiz.length)}`; },
  final(){ const f = DATA.final;
-   return `<h2>${t().final_h}</h2>
+   return `<h2>${t().final_h}</h2>${taskBox("final")}
    <fieldset><legend>${t().attn}</legend>${radios("attn",t().attn_o,f.attention,["green","orange","blue","off"])}</fieldset>
    <fieldset><legend>${t().fb1}</legend><textarea id="fb1" rows="3">${esc(f.unclear||"")}</textarea></fieldset>
    <fieldset><legend>${t().fb2}</legend><textarea id="fb2" rows="3">${esc(f.improve||"")}</textarea></fieldset>${nav(true)}`; },
@@ -675,10 +715,16 @@ const R = {
    ${SETTINGS.TEST_MODE?`<details class="debug"><summary>${t().debug}</summary><pre>${esc(JSON.stringify(DATA,null,2))}</pre></details>`:""}`; },
 };
 const sitNo = tc => DATA.order.indexOf(tc)+1;
+function taskBox(key, extra, note){
+  const steps = t().tasks[key]; if (!steps) return "";
+  const body = steps.length>1 ? `<ol>${steps.map(x=>`<li>${esc(x)}</li>`).join("")}</ol>` : `<p>${esc(steps[0])}</p>`;
+  return `<div class="task" role="note"><div class="th">${t().task_h}</div>${body}${extra?`<p style="margin-top:6px"><b>${esc(extra)}</b></p>`:""}${note?`<p style="margin-top:4px">${esc(note)}</p>`:""}</div>`;
+}
+const personaTag = who => `<div class="persona">${avatar(who)}<span>${esc(t().persona[who])}</span></div>`;
 
 function storyScreen(tc){
   const s = SCENARIOS[tc];
-  return `<p class="eyebrow">${t().sit(sitNo(tc))}</p><h2>${t().story_h}</h2>
+  return `<p class="eyebrow">${t().sit(sitNo(tc))}</p><h2>${t().story_h}</h2>${personaTag(s.person)}${taskBox("story")}
     <div class="card person">${avatar(s.person)}<p class="story" style="margin:0">${esc(s.story[lang])}</p></div>${nav(true)}`;
 }
 
@@ -705,7 +751,7 @@ function rankScreen(tc){
     if (d.locked) chat += `<div class="msg bot"><span class="who">${tt.bot}</span>${tt.bot_thanks}</div>`;
   }
   chat += `</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>${personaTag(s.person)}${taskBox("rank")}
     <div class="scene">${officeSVG(s)}</div>${statusChips(s)}${chat}${nav(d.locked)}`;
 }
 const sides = tc => DATA.ab[tc].C ? ["A","B","C"] : ["A","B"];   // explanation labels shown for this situation
@@ -717,7 +763,7 @@ function rateScreen(tc){
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
   const answer = side => `<div class="card answer ${side==="B"?"b":""}"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
     <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2><p>${tt.rate_p(sides(tc).length)}</p>
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox("rate", tt.rate_persona(s.person), tt.rate_note)}<p>${tt.rate_p(sides(tc).length)}</p>
    <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
    <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
    <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",sides(tc).map(x=>tt.expl+" "+x),d.pref,sides(tc))}</fieldset></div>
