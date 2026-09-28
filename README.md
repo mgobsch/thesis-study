@@ -166,3 +166,14 @@ To avoid order effects, the page randomises per participant (and saves it):
 - Works in current versions of Chrome, Firefox, Safari and Edge, on laptops and phones.
 - The office drawing is inline SVG, so no image files are needed.
 - Progress is stored in the browser's `localStorage` and removed after the study is finished.
+
+---
+
+## Optional: three explanations in TC2
+
+The page contains an optional third explanation for TC2: **WIN2**, GPT-OSS + P1 + C2 **Trial 2**. It is faithful but uses the foil "Meeting Room Not Occupied" (it explains "why not green"), while WIN (Trial 1) answers "why not blue" but contains an invented priority claim.
+
+- Switch: `TC2_THREE_EXPLANATIONS` in `SETTINGS` (`false` = off, `true` = on).
+- When on, TC2 shows explanations A, B and C in random order, with the same ratings for each and a 3-option preference question.
+- Extra columns: `tc2_three`, `TC2_C_is`, `TC2_WIN2_clear` … `TC2_WIN2_trust`.
+- Switch it on **before** data collection starts, not during it.
