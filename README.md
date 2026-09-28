@@ -23,7 +23,7 @@ The study takes about 15–20 minutes and works in English and German (switch at
 9. **Three situations (random order),** each with three steps:
    - **Story:** what the persona sees at that moment
    - **Ask SmartEx:** the participant asks why the light looks the way it does, and ranks the rules by what they expected instead (drag and drop, then "Lock in my order")
-   - **Rate the explanations:** two explanations (A and B) are rated on clarity, understandability, helpfulness, naturalness and trust, followed by a preference and a comprehension question
+   - **Rate the explanations:** three explanations (A, B and C) are rated on clarity, understandability, helpfulness, naturalness and trust, followed by a preference and a comprehension question
 10. **Final questions:** attention check and optional feedback
 11. **End:** answers are sent to the Google Sheet
 
@@ -35,12 +35,21 @@ The study takes about 15–20 minutes and works in English and German (switch at
 | TC2 | Bob | 12:10, rain, lunchtime. Bob's "Rain at Lunch" rule should turn the light blue. People are standing in the hallway, the door is closed. | orange |
 | TC3 | Alice | 08:00, sunny. Alice arrives in the morning, the door is slightly open, the room is empty. | off |
 
-### The two explanations
+### The three explanations
 
-In each situation, participants compare two explanations in random order (they only see "A" and "B"):
+In each situation, participants rate three explanations in random order (they only see "A", "B" and "C"):
 
-- **C0:** the original SmartEx template explanation (baseline)
-- **WIN:** the explanation from the selected setup, GPT-OSS + prompt P1 (zero-shot) + configuration C2 (LLM-weighted TOPSIS)
+- **C0:** the SmartEx baseline explanation (reworded for readability)
+- **C2:** DeepSeek + prompt P1 (zero-shot) + configuration C2 (LLM-weighted TOPSIS)
+- **C3:** DeepSeek + prompt P1 (zero-shot) + configuration C3 (LLM foil selection)
+
+The same trial is used for every participant. Only trials without hallucinations were chosen:
+
+| Situation | C2 | C3 |
+|---|---|---|
+| TC1 | Trial 3 | Trial 2 |
+| TC2 | Trial 1 | Trial 1 |
+| TC3 | Trial 1 | Trial 2 |
 
 The German explanations are translations of the English originals.
 
@@ -86,9 +95,10 @@ To analyse the data in Excel: open the Google Sheet → **File → Download → 
 | `TC1_rank_locked` | the locked ranking, e.g. "notoccupied > rain" |
 | `TC1_rank_first` | the rule ranked first (the expected foil) |
 | `TC1_rank_moves` | how often tiles were moved |
-| `TC1_A_is` | which explanation was shown as "A" (C0 or WIN) |
-| `TC1_preferred` | preferred explanation: **C0** or **WIN** |
-| `TC1_C0_clear` … `TC1_WIN_trust` | Likert ratings 1–5, already mapped to C0 and WIN |
+| `TC1_A_is`, `TC1_B_is`, `TC1_C_is` | which explanation was shown as A, B and C (C0, C2 or C3) |
+| `TC1_C2_trial`, `TC1_C3_trial` | which DeepSeek trial was used |
+| `TC1_preferred` | preferred explanation: **C0**, **C2** or **C3** |
+| `TC1_C0_clear` … `TC1_C3_trust` | Likert ratings 1–5, already mapped to C0, C2 and C3 |
 | `TC1_mcq_correct` | comprehension question correct (TRUE/FALSE) |
 | `TC1_time_rank_s`, `TC1_time_rate_s` | seconds spent on the ranking and rating pages |
 | `total_time_min` | total duration in minutes |
@@ -146,7 +156,7 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 To avoid order effects, the page randomises per participant (and saves it):
 
 - the order of the three situations
-- which explanation is shown as A and which as B
+- which explanation is shown as A, B and C
 - the starting order of the rule tiles
 - the order of the comprehension-question answers
 
@@ -167,13 +177,3 @@ To avoid order effects, the page randomises per participant (and saves it):
 - The office drawing is inline SVG, so no image files are needed.
 - Progress is stored in the browser's `localStorage` and removed after the study is finished.
 
----
-
-## Optional: three explanations in TC2
-
-The page contains an optional third explanation for TC2: **WIN2**, GPT-OSS + P1 + C2 **Trial 2**. It is faithful but uses the foil "Meeting Room Not Occupied" (it explains "why not green"), while WIN (Trial 1) answers "why not blue" but contains an invented priority claim.
-
-- Switch: `TC2_THREE_EXPLANATIONS` in `SETTINGS` (`false` = off, `true` = on).
-- When on, TC2 shows explanations A, B and C in random order, with the same ratings for each and a 3-option preference question.
-- Extra columns: `tc2_three`, `TC2_C_is`, `TC2_WIN2_clear` … `TC2_WIN2_trust`.
-- Switch it on **before** data collection starts, not during it.
