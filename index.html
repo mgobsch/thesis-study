@@ -427,7 +427,6 @@ const T = {
    rate2:["Lies beide Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
-  rate_persona:p=>`SmartEx passt seine Erklärungen an die fragende Person an. Bewerte sie aus der Sicht von ${p}.`,
   rate_note:"Die Erklärungen wurden automatisch erstellt. Manche sind vielleicht unklar oder nicht ganz richtig. Bitte bewerte jede ehrlich so, wie du sie verstehst.",
   persona:{Alice:"Du bist Alice · kennt sich ein bisschen mit Technik aus", Bob:"Du bist Bob · nicht technisch, mag einfache Alltagssprache"},
   brand:"Studie: Smartes Büro", next:"Weiter", back:"Zurück", missing:"Bitte beantworte alle Fragen, um fortzufahren.",
@@ -769,7 +768,7 @@ function rateScreen(tc){
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
   const answer = side => `<div class="card answer ${side==="B"?"b":""}"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
     <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox(sides(tc).length===3?"rate":"rate2", tt.rate_persona(s.person), tt.rate_note)}<p>${tt.rate_p(sides(tc).length)}</p>
+  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox(sides(tc).length===3?"rate":"rate2", null, tt.rate_note)}<p>${tt.rate_p(sides(tc).length)}</p>
    <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
    <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
    <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",sides(tc).map(x=>tt.expl+" "+x),d.pref,sides(tc))}</fieldset></div>
