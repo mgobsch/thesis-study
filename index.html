@@ -258,8 +258,8 @@ const RULES = {
 const SCENARIOS = {
   TC1: {
     person:"Alice", colleague:true, group:true, time:"12:08", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Alice. It is 12:08. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door.",
-           de:"Du bist Alice. Es ist 12:08 Uhr. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Alice. It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door.",
+           de:"Du bist Alice. Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain"],
     explanations:{
@@ -280,8 +280,8 @@ const SCENARIOS = {
   },
   TC2: {
     person:"Bob", colleague:true, group:true, time:"12:10", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Bob. You created a rule that turns the status light blue when rain is forecast at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
-           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn zur Mittagszeit Regen vorhergesagt ist – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Bob. You created a rule that turns the status light blue when rain is forecast at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues standing and talking together in the hallway. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
+           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn zur Mittagszeit Regen vorhergesagt ist – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen im Flur zusammenstehen und reden. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain"],
     explanations:{
