@@ -247,8 +247,8 @@ const RULES = {
     en:{name:"Danger", when:"smoke, CO₂ or a fire alarm is detected", only:"it is between 08:00 and 18:00"},
     de:{name:"Gefahr", when:"Rauch, CO₂ oder ein Feueralarm erkannt wird", only:"es zwischen 08:00 und 18:00 ist"}},
   closing:{c:"off", owner:"Alice",
-    en:{name:"Closing Time", when:"it is 18:00", only:null},
-    de:{name:"Feierabend", when:"es 18:00 ist", only:null}},
+    en:{name:"Closing Time", when:"it is between 18:00 and 23:00", only:null},
+    de:{name:"Feierabend", when:"es zwischen 18:00 und 23:00 ist", only:null}},
 };
 
 /* =====================================================================
@@ -280,8 +280,8 @@ const SCENARIOS = {
   },
   TC2: {
     person:"Bob", colleague:true, group:true, time:"12:10", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Bob. You created a rule that turns the status light blue when rain is forecast at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues standing and talking together in the hallway. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
-           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn zur Mittagszeit Regen vorhergesagt ist – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen im Flur zusammenstehen und reden. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Bob. You created a rule that turns the status light blue when it is raining at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
+           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn es zur Mittagszeit regnet – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain"],
     explanations:{
@@ -289,10 +289,10 @@ const SCENARIOS = {
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht blau, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
       // GPT-OSS + P1 + C2, Trial 2
       C2:{en:"Bob, the light is orange because the system detected motion in the meeting room while the door was closed, which matches the condition for the “room occupied” rule. Since motion was present, the “room not occupied” rule (which requires no motion) didn’t apply, so the green light wasn’t triggered.",
-          de:"Bob, die Anzeige leuchtet orange, weil das System bei geschlossener Tür Bewegung im Besprechungsraum erkannt hat, was der Bedingung für die Regel „Raum belegt“ entspricht. Da Bewegung vorhanden war, kam die Regel „Raum nicht belegt“ (die keine Bewegung voraussetzt) nicht zur Anwendung, sodass die grüne Anzeige nicht ausgelöst wurde."},
+          de:"Bob, das Licht ist orange, weil das System Bewegung im Besprechungsraum erkannt hat, während die Tür geschlossen war, was der Bedingung für die Regel „Raum belegt“ entspricht. Da Bewegung vorhanden war, kam die Regel „Raum nicht belegt“ (die keine Bewegung voraussetzt) nicht zur Anwendung, sodass das grüne Licht nicht ausgelöst wurde."},
       // GPT-OSS + P1 + C3, Trial 1
       C3:{en:"The light is orange because motion was detected in the meeting room, so the system considered the room occupied and applied the rule that sets the status light to orange. If there had been no motion, the 'Meeting room not occupied' rule would have turned the light green instead.",
-          de:"Die Leuchte leuchtet orange, da im Besprechungsraum Bewegung erkannt wurde; daher hat das System den Raum als belegt eingestuft und die Regel angewendet, die die Statusleuchte auf orange setzt. Hätte es keine Bewegung gegeben, hätte die Regel „Besprechungsraum nicht belegt“ stattdessen die Leuchte auf Grün schalten lassen."}
+          de:"Das Licht ist orange, da im Besprechungsraum Bewegung erkannt wurde; daher hat das System den Raum als belegt eingestuft und die Regel angewendet, die die Statusleuchte auf orange setzt. Hätte es keine Bewegung gegeben, hätte die Regel „Besprechungsraum nicht belegt“ das Licht stattdessen grün gemacht."}
     },
     mcq:{ q:{en:"According to the explanations, which rule turned the status light orange?", de:"Welche Regel hat das Statuslicht laut den Erklärungen orange geschaltet?"}, correct:1, opts:[
       {en:"Rain at Lunch", de:"Regen zur Mittagszeit"},
@@ -311,10 +311,10 @@ const SCENARIOS = {
           de:"Die Statusanzeige des Besprechungsraums ist ausgeschaltet und nicht grün, weil nicht alle Voraussetzungen erfüllt sind: keine Bewegung im Besprechungsraum erkannt, und der Kontaktsensor des Besprechungsraums ist offen."},
       // GPT-OSS + P1 + C2, Trial 1
       C2:{en:"The “Meeting room not occupied” rule only activates when the door sensor registers a new “on” (opening) event and then sees no motion; at 08:00 the door was already open and no fresh opening trigger occurred, so the rule never fired. Because the rule didn’t run, the meeting‑room status light stayed off.",
-          de:"Die Regel „Besprechungsraum nicht belegt“ wird nur aktiviert, wenn der Türsensor ein neues „Ein“-Ereignis (Öffnen) registriert und anschließend keine Bewegung feststellt; um 08:00 Uhr war die Tür bereits geöffnet, und es trat kein neuer Öffnungsauslöser auf, sodass die Regel nie ausgelöst wurde. Da die Regel nicht ausgeführt wurde, blieb die Statusleuchte des Besprechungsraums ausgeschaltet."},
+          de:"Die Regel „Besprechungsraum nicht belegt“ wird nur aktiviert, wenn der Türsensor ein neues „On“-Ereignis (Öffnen) registriert und anschließend keine Bewegung feststellt; um 08:00 Uhr war die Tür bereits geöffnet, und es trat kein neuer Öffnungsauslöser auf, sodass die Regel nie ausgelöst wurde. Da die Regel nicht ausgeführt wurde, blieb die Statusleuchte des Besprechungsraums ausgeschaltet."},
       // GPT-OSS + P1 + C3, Trial 3
       C3:{en:"The 'Meeting room not occupied' rule would have turned the status light green because the door was open and no motion was detected, but its trigger fires only when the door sensor changes to 'on'. Since the door was already open at the time, the trigger did not activate, so no rule fired and the light stayed off.",
-          de:"Die Regel „Besprechungsraum nicht belegt“ hätte die Statusleuchte auf Grün schalten sollen, da die Tür offen war und keine Bewegung erkannt wurde; ihr Auslöser wird jedoch nur aktiviert, wenn der Türsensor auf „Ein“ wechselt. Da die Tür zu diesem Zeitpunkt bereits offen war, wurde der Auslöser nicht aktiviert, sodass keine Regel ausgelöst wurde und die Leuchte ausgeschaltet blieb."}
+          de:"Die Regel „Besprechungsraum nicht belegt“ hätte die Statusleuchte auf Grün schalten sollen, da die Tür offen war und keine Bewegung erkannt wurde; ihr Auslöser wird jedoch nur aktiviert, wenn der Türsensor auf „On“ wechselt. Da die Tür zu diesem Zeitpunkt bereits offen war, wurde der Auslöser nicht aktiviert, sodass keine Regel ausgelöst wurde und die Leuchte ausgeschaltet blieb."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light off?", de:"Warum ist das Statuslicht laut den Erklärungen aus?"}, correct:0, opts:[
       {en:"“Meeting Room Not Occupied” did not start, because the door was not newly opened.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil die Tür nicht neu geöffnet wurde."},
@@ -359,18 +359,18 @@ const T = {
   office_p:"This is the office where Alice and Bob work. It has a meeting room. From the outside you can't see whether someone is inside, so there is a status light above the meeting-room door. Its colour is set automatically by the smart office system, which follows a set of rules.",
   office_p2:"The rules in this office were created by different people and don't always fit together well. Some of them can apply at the same time, and three different rules can turn the light orange. That's why the status light is not always what people expect.",
   smartex_h:"SmartEx, the explanation assistant",
-  smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it. SmartEx looks at which rules exist, what the sensors measured and what just happened, and explains it to you. SmartEx does not control or change anything itself.",
+  smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it.",
   dev_h:"The smart devices", dev_p:"Click each highlighted device to see what it does. When you have looked at all seven, you can continue.",
   dev_seen:"seen", show_rules:"Show rules",
   dev:{
    door:["Door sensor","The door sensor tells the smart office system when the meeting-room door opens or closes."],
    motion:["Motion sensor","The motion sensor hangs inside the meeting room. It is only there so the smart office system knows whether movement was detected inside."],
-   light:["Status light","The status light shows people outside the meeting room a colour. The rules decide which colour."],
-   weather:["Weather forecast","This display shows the weather forecast, for example rain or sun. Some rules use it."],
+   light:["Status light","The status light shows people outside the meeting room different colours for different states, for example green = the meeting room is currently not occupied."],
+   weather:["Weather forecast","This display shows the weather forecast, for example rain or sun."],
    clock:["Clock","The office knows the time. Some rules only apply at certain times. The note above the clock shows the most important times."],
    smoke:["Smoke and CO₂ detector","The detector notices smoke, CO₂ or a fire alarm."],
-   fan:["Ventilation fan","The ventilation fan in the meeting room can run on normal or high."]},
-  labels:{room:"Meeting room", forecast:"Forecast", you:"You", motion:"motion sensor", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00"},
+   fan:["Ventilation fan","The ventilation fan used in the meeting room."]},
+  labels:{room:"Meeting room", forecast:"Forecast", you:"You", motion:"motion sensor", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00–23:00"},
   door_h:"Looking at the meeting room", door_p:"Try it out: change the door and the room below. When the door is slightly open, you can see through the gap whether people are inside. When it is closed, you can't.",
   door_lbl:"Door", door_opts:{closed:"Closed", crack:"Slightly open"}, room_lbl:"Meeting room", room_opts:{empty:"Empty", full:"People inside"},
   door_todo:"Try “Slightly open” with both “Empty” and “People inside” to continue.",
@@ -417,13 +417,13 @@ const T = {
    start:["Lies die Informationen.","Setze den Haken, wenn du einverstanden bist.","Klicke auf „Weiter“."],
    about:["Beantworte die drei Fragen. Es gibt keine richtigen oder falschen Antworten."],
    office:["Lies den Text über das Büro und SmartEx. Klicke dann auf „Weiter“."],
-   devices:["Klicke auf jedes der 7 markierten Geräte und lies, was es macht. „Weiter“ wird aktiv, wenn du alle angesehen hast."],
+   devices:["Klicke auf jedes der 7 markierten Geräte und lies, was jedes macht. Der „Weiter“-Knopf wird aktiv, wenn du alle angesehen hast."],
    door:["Stelle die Tür auf „Einen Spalt offen“.","Wechsle zwischen „Leer“ und „Leute drin“ und schau durch den Spalt."],
    rules:["Lies jede Regel von oben nach unten. Du musst sie dir nicht merken – sie stehen immer in der Büronotiz."],
    people:["Lies, wer Alice und Bob sind. Später schlüpfst du in ihre Rolle."],
    quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
    story:["Lies die Situation aufmerksam und stell dir vor, du bist diese Person."],
-   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Bring die Regeln in eine Reihenfolge – danach, was du stattdessen erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
+   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Bring die Regeln in die Reihenfolge, die du stattdessen erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
    rate2:["Lies beide Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
@@ -442,18 +442,18 @@ const T = {
   office_p:"Das ist das Büro, in dem Alice und Bob arbeiten. Es hat einen Besprechungsraum. Von außen sieht man nicht, ob jemand drin ist, deshalb gibt es über der Tür ein Statuslicht. Seine Farbe setzt das Smart-Office-System automatisch – nach bestimmten Regeln.",
   office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt und passen nicht immer gut zusammen. Manche können gleichzeitig gelten, und drei verschiedene Regeln können das Licht orange schalten. Deshalb ist das Statuslicht nicht immer so, wie man es erwartet.",
   smartex_h:"SmartEx, der Erklär-Assistent",
-  smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen. SmartEx schaut sich dafür an, welche Regeln es gibt, was die Sensoren gemessen haben und was gerade passiert ist, und erklärt es dir. SmartEx steuert selbst nichts und ändert nichts.",
+  smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen.",
   dev_h:"Die smarten Geräte", dev_p:"Klicke auf jedes markierte Gerät, um zu sehen, was es macht. Wenn du dir alle sieben angesehen hast, geht es weiter.",
   dev_seen:"gesehen", show_rules:"Regeln zeigen",
   dev:{
    door:["Türsensor","Der Türsensor meldet dem Smart-Office-System, wenn die Tür des Besprechungsraums auf- oder zugeht."],
    motion:["Bewegungsmelder","Der Bewegungsmelder hängt im Besprechungsraum. Er ist nur dafür da, dass das Smart-Office-System weiß, ob drinnen Bewegung erkannt wurde."],
-   light:["Statuslicht","Das Statuslicht zeigt den Leuten außerhalb des Besprechungsraums eine Farbe. Die Regeln entscheiden, welche."],
-   weather:["Wettervorhersage","Dieses Display zeigt die Wettervorhersage, zum Beispiel Regen oder Sonne. Manche Regeln nutzen sie."],
+   light:["Statuslicht","Das Statuslicht zeigt den Leuten außerhalb des Besprechungsraums verschiedene Farben für verschiedene Zustände, zum Beispiel grün = der Besprechungsraum ist gerade nicht belegt."],
+   weather:["Wettervorhersage","Dieses Display zeigt die Wettervorhersage, zum Beispiel Regen oder Sonne."],
    clock:["Uhr","Das Büro kennt die Uhrzeit. Manche Regeln gelten nur zu bestimmten Zeiten. Die Notiz über der Uhr zeigt die wichtigsten Zeiten."],
    smoke:["Rauch- und CO₂-Melder","Der Melder erkennt Rauch, CO₂ oder einen Feueralarm."],
-   fan:["Lüfter","Der Lüfter im Besprechungsraum kann normal oder auf hoch laufen."]},
-  labels:{room:"Besprechungsraum", forecast:"Vorhersage", you:"Du", motion:"Bewegungsmelder", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00"},
+   fan:["Lüfter","Der Lüfter im Besprechungsraum."]},
+  labels:{room:"Besprechungsraum", forecast:"Vorhersage", you:"Du", motion:"Bewegungsmelder", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00–23:00"},
   door_h:"Blick auf den Besprechungsraum", door_p:"Probier es aus: Ändere unten die Tür und den Raum. Wenn die Tür einen Spalt offen ist, siehst du durch den Spalt, ob Leute drin sind. Wenn sie zu ist, nicht.",
   door_lbl:"Tür", door_opts:{closed:"Zu", crack:"Einen Spalt offen"}, room_lbl:"Besprechungsraum", room_opts:{empty:"Leer", full:"Leute drin"},
   door_todo:"Probiere „Einen Spalt offen“ mit „Leer“ und mit „Leute drin“ aus, um weiterzumachen.",
@@ -516,6 +516,7 @@ for (const tc of ["TC1","TC2","TC3"]) {
   const conds = SETTINGS.VARIANT==="C2" ? ["C0","C2"] : ["C0","C2","C3"];
   const o3 = shuffle(conds); DATA.ab[tc] = {A:o3[0], B:o3[1]}; if (o3[2]) DATA.ab[tc].C = o3[2];   // random order of the explanations
   DATA.mcq_order = DATA.mcq_order || {}; DATA.mcq_order[tc] = shuffle([0,1,2,3]);
+  DATA.quiz_order = DATA.quiz_order || [0,1,2].map(()=>shuffle([0,1,2]));   // answer order in the quick check
   const initial = shuffle(SCENARIOS[tc].foils);
   DATA.rank[tc] = {initial, pool:[...initial], slots:Array(initial.length).fill(null), moves:0, asked:false, locked:false, log:[]};
 }
@@ -708,7 +709,8 @@ const R = {
  quiz(){ return `<h2>${t().quiz_h}</h2>${taskBox("quiz")}<p>${t().quiz_p}</p>${t().quiz.map((q,i)=>{
      const a = DATA.quiz["q"+(i+1)];
      const fb = !a?"":(a.answer===q.c?`<div class="feedback ok">${t().right}</div>`:`<div class="feedback no">${t().wrong}${esc(q.o[q.c])}</div>`);
-     return `<fieldset><legend>${i+1}. ${esc(q.q)}</legend>${q.o.map((o,j)=>`<label class="opt"><input type="radio" name="quiz${i}" value="${j}" ${a&&a.answer===j?"checked":""} ${a?"disabled":""}><span>${esc(o)}</span></label>`).join("")}${fb}</fieldset>`;}).join("")}
+     const ord = (DATA.quiz_order||[])[i] || [0,1,2];
+     return `<fieldset><legend>${i+1}. ${esc(q.q)}</legend>${ord.map(j=>`<label class="opt"><input type="radio" name="quiz${i}" value="${j}" ${a&&a.answer===j?"checked":""} ${a?"disabled":""}><span>${esc(q.o[j])}</span></label>`).join("")}${fb}</fieldset>`;}).join("")}
    ${nav(Object.keys(DATA.quiz).length===t().quiz.length)}`; },
  final(){ const f = DATA.final;
    return `<h2>${t().final_h}</h2>${taskBox("final")}
