@@ -124,6 +124,27 @@ The same columns exist for TC2 and TC3.
 
 ---
 
+## Quality and bot checks
+
+The page measures how long each screen takes and adds warning flags to every row. **Nobody is excluded automatically**; the flags only help you decide later.
+
+| Column | Meaning |
+|---|---|
+| `time_<screen>_s` | seconds on each screen, e.g. `time_devices_s`, `time_TC1_rank_s`, `time_TC1_rate_s` (adds up if someone goes back) |
+| `TC1_rate_min_reading_s` | minimum time needed to read the explanations on that rating page at `READING_WPM` |
+| `TC1_straightlining` | TRUE = all ratings in this situation have the same value |
+| `flag_too_fast` | whole study faster than `MIN_TOTAL_MINUTES`, or a rating page faster than its minimum reading time |
+| `flag_straightlining` | straightlining in at least one situation |
+| `flag_no_pointer` | no mouse, touch or scroll activity at all |
+| `flag_webdriver` | the browser reports that it is remote-controlled (typical for bots) |
+| `flag_honeypot` | an invisible field on the "About you" page was filled in (people can't see it) |
+| `pointer_moves` | number of mouse/touch/scroll events |
+| `bot_score` | number of flags that apply (0 = unremarkable) |
+
+Thresholds are set in `SETTINGS`: `MIN_TOTAL_MINUTES` (default 5) and `READING_WPM` (default 300). Decide before data collection which rule leads to exclusion (for example: attention check failed or `bot_score` ≥ 2) and report it in the method section.
+
+---
+
 ## How to change things
 
 All content is in clearly marked blocks at the top of the `<script>` part of `index.html`. To edit on GitHub: open `index.html` → click the **pencil icon** → make the change → **Commit changes**. The live page updates after about 1 minute.
@@ -144,6 +165,8 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 | `SAVE_URL` | web-app URL | where answers are sent (Google Apps Script) |
 | `SURVEY_RETURN_URL` | URL or `""` | optional button on the end screen, e.g. to a follow-up survey |
 | `VARIANT` | `"C2_C3"` / `"C2"` | three explanations (C0 + C2 + C3) or two (C0 + C2) |
+| `MIN_TOTAL_MINUTES` | number | minimum total duration; faster → `flag_too_fast` |
+| `READING_WPM` | number | reading speed used for the rating-page check |
 | `CONTEXT_MODE` | `"basic"` / `"all"` / `"split"` | `basic` = owners only in the office note; `all` = also how often rules were fired and explained; `split` = random 50/50 per participant |
 
 ### Editing tips

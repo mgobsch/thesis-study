@@ -212,6 +212,9 @@ const SETTINGS = {
   //   "C2_C3" = C0 + C2 + C3 (three explanations)
   //   "C2"    = C0 + C2      (two explanations)
   VARIANT: "C2_C3",
+  // Quality / bot checks (only mark answers in the sheet, nobody is excluded automatically)
+  MIN_TOTAL_MINUTES: 5,     // faster than this for the whole study -> flag_too_fast
+  READING_WPM: 300,         // a rating page faster than reading all its explanations at this speed -> flag_too_fast
 };
 
 /* 2) RULE STATISTICS (past 90 days, from system_data_summary.json) — only shown when CONTEXT_MODE is "all" */
@@ -510,7 +513,8 @@ let DATA = {
   pid, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
   context_mode:contextMode, context_setting:SETTINGS.CONTEXT_MODE,
   order:shuffle(["TC1","TC2","TC3"]), ab:{},
-  consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[]
+  consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[],
+  webdriver: !!navigator.webdriver, pointer_moves:0, honeypot:""
 };
 for (const tc of ["TC1","TC2","TC3"]) {
   const conds = SETTINGS.VARIANT==="C2" ? ["C0","C2"] : ["C0","C2","C3"];
@@ -685,7 +689,8 @@ const R = {
    return `<h2>${t().about_h}</h2>${taskBox("about")}
    <fieldset><legend>${t().age}</legend>${radios("age",t().ages,a.age,T.en.ages)}</fieldset>
    <fieldset><legend>${t().tech}</legend>${radios("tech",t().techs,a.tech,[1,2,3,4])}</fieldset>
-   <fieldset><legend>${t().techbg}</legend>${radios("techbg",t().yesno,a.techbg,["yes","no"])}</fieldset>${nav(true)}`; },
+   <fieldset><legend>${t().techbg}</legend>${radios("techbg",t().yesno,a.techbg,["yes","no"])}</fieldset>
+   <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden"><label for="hp_website">Website</label><input type="text" id="hp_website" name="hp_website" tabindex="-1" autocomplete="off" value="${esc(DATA.honeypot||"")}"></div>${nav(true)}`; },
  office(){ return `<h2>${t().office_h}</h2>${taskBox("office")}<div class="scene">${officeSVG(DEFAULT_STATE)}</div>
    <p style="margin-top:16px">${t().office_p}</p><p>${t().office_p2}</p>
    <h3>${t().smartex_h}</h3><p>${t().smartex_p}</p>${nav(true)}`; },
@@ -830,6 +835,10 @@ function endDrag(ev){
 document.addEventListener("pointerup", endDrag);
 document.addEventListener("pointercancel", e=>{ const g = ui.drag; if (g&&g.ghost){ g.ghost.remove(); g.el.classList.remove("src"); } ui.drag = null; });
 
+/* ---------- bot checks: pointer activity + honeypot ---------- */
+["pointermove","touchstart","wheel"].forEach(ev=>document.addEventListener(ev, ()=>{ DATA.pointer_moves = (DATA.pointer_moves||0)+1; }, {passive:true}));
+document.addEventListener("input", e=>{ if (e.target && e.target.id==="hp_website") DATA.honeypot = e.target.value; });
+
 /* ---------- render + navigation ---------- */
 function render(){
   document.documentElement.lang = lang;
@@ -939,6 +948,29 @@ function summary(){
   o.model = "GPT-OSS P1";
   o.variant = SETTINGS.VARIANT;
   o.total_time_min = Math.round(Object.values(DATA.timing).reduce((a,b)=>a+b,0)/60000*10)/10;
+  // time per screen (seconds), e.g. time_devices_s, time_TC1_rate_s
+  for (const sc of SCREENS){ if (sc==="end") continue; const [k,tc] = sc.split(":");
+    o[tc ? `time_${tc}_${k}_s` : `time_${k}_s`] = Math.round((DATA.timing[sc]||0)/1000); }
+  // quality / bot flags
+  let tooFastRating = false, straight = false;
+  for (const tc of ["TC1","TC2","TC3"]){
+    const q = DATA.rate[tc], ab = DATA.ab[tc]; if (!q) continue;
+    const words = sides(tc).map(sd=>SCENARIOS[tc].explanations[ab[sd]][DATA.lang_start||"en"]).join(" ").split(/\s+/).length;
+    const minSec = words / SETTINGS.READING_WPM * 60;
+    const spent = (DATA.timing["rate:"+tc]||0)/1000;
+    o[`${tc}_rate_min_reading_s`] = Math.round(minSec);
+    if (spent && spent < minSec) tooFastRating = true;
+    const vals = sides(tc).flatMap(sd=>T.en.lik_items.map(([k])=>q.likert[sd][k])).filter(v=>v);
+    const sl = vals.length>=5 && vals.every(v=>v===vals[0]);
+    o[`${tc}_straightlining`] = sl; if (sl) straight = true;
+  }
+  o.flag_too_fast = (DATA.finished_at && o.total_time_min < SETTINGS.MIN_TOTAL_MINUTES) || tooFastRating;
+  o.flag_straightlining = straight;
+  o.flag_no_pointer = !(DATA.pointer_moves > 0);
+  o.flag_webdriver = !!DATA.webdriver;
+  o.flag_honeypot = !!(DATA.honeypot && DATA.honeypot.trim());
+  o.pointer_moves = DATA.pointer_moves||0;
+  o.bot_score = [o.flag_too_fast,o.flag_straightlining,o.flag_no_pointer,o.flag_webdriver,o.flag_honeypot].filter(Boolean).length;
   return o;
 }
 async function sendToSheet(finished){
