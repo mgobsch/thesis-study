@@ -46,6 +46,7 @@ h3{font-size:1.1rem;margin:1.2em 0 .4em}
 p{margin:.5em 0 .9em;max-width:68ch}
 .muted{color:var(--muted)}
 .eyebrow{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0}
+.sitbadge{display:inline-block;background:var(--l-orange);color:#fff;font-weight:700;font-size:1.05rem;border-radius:20px;padding:4px 14px;margin:0 0 8px;letter-spacing:.02em}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
 .stack>*+*{margin-top:14px}
 .btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:12px 20px;background:var(--accent);color:var(--accent-ink);cursor:pointer;text-decoration:none;display:inline-block}
@@ -101,6 +102,8 @@ legend{font-weight:700;margin-bottom:8px;padding:0}
 .notes .nrule:last-child{border-bottom:0}
 .notes .own{font-size:14px;margin-top:4px}
 .notes-head{display:flex;justify-content:space-between;align-items:center}
+.notes-fold{display:none}
+#notes-show{display:none}
 .notes-close{display:none}
 #notes{display:none}
 body.notes-on #notes{display:block}
@@ -108,6 +111,10 @@ body.notes-on #notes{display:block}
   body.notes-on{padding-right:350px}
   body.notes-on #notes{position:fixed;right:18px;top:calc(env(safe-area-inset-top,0px) + 70px);bottom:18px;width:320px;overflow:auto;z-index:10}
   .notes-tab{display:none!important}
+  .notes-fold{display:inline-block}
+  body.notes-on.notes-folded{padding-right:0}
+  body.notes-on.notes-folded #notes{display:none}
+  body.notes-on.notes-folded #notes-show{display:block;position:fixed;right:0;top:calc(env(safe-area-inset-top,0px) + 90px);z-index:10;background:var(--note);color:var(--note-ink);border:1px solid var(--note-line);border-right:0;border-radius:8px 0 0 8px;padding:12px 10px;font:inherit;font-weight:700;cursor:pointer;writing-mode:vertical-rl;box-shadow:0 4px 12px rgba(0,0,0,.18)}
 }
 @media (max-width:1099px){
   body.notes-on #notes{position:fixed;left:8px;right:8px;bottom:0;max-height:78vh;overflow:auto;z-index:30;transform:translateY(105%);transition:transform .25s;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));border-radius:12px 12px 0 0}
@@ -131,6 +138,10 @@ body.hinting .notes-tab{outline:4px solid #D92D20;outline-offset:3px;animation:r
   .hint-arrow{bottom:-27px;right:30px;border-top-color:#D92D20}}
 @media (prefers-reduced-motion:reduce){body.hinting #notes,body.hinting .notes-tab{animation:none}}
 @keyframes flash{50%{box-shadow:0 0 0 6px var(--accent)}}
+/* preview banner */
+#preview-bar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 51px);z-index:19;background:#7A3EB1;color:#fff;font-size:15px}
+#preview-bar .in{max-width:780px;margin:0 auto;padding:6px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#preview-bar select{font:inherit;font-size:14px;padding:3px 6px;border-radius:6px;border:0}
 /* "What to do" box + persona label */
 .task{border:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel));border-radius:10px;padding:12px 16px;margin:0 0 18px}
 .task .th{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-bottom:4px}
@@ -189,9 +200,11 @@ details.debug pre{white-space:pre-wrap;overflow-x:auto;max-height:300px;backgrou
     <button type="button" data-lang="en">EN</button><button type="button" data-lang="de">DE</button>
   </div>
 </div></header>
+<div id="preview-bar" hidden></div>
 <main id="app" aria-live="polite"></main>
 <aside id="notes" class="notes" aria-label="Office notes"></aside>
 <button type="button" class="notes-tab" id="notes-tab"></button>
+<button type="button" id="notes-show"></button>
 <div id="notes-hint" class="notes-hint" role="status" hidden></div>
 
 <script>
@@ -212,6 +225,13 @@ const SETTINGS = {
   //   "C2_C3" = C0 + C2 + C3 (three explanations)
   //   "C2"    = C0 + C2      (two explanations)
   VARIANT: "C2_C3",
+  // LimeSurvey: true = consent + "About you" happen in LimeSurvey, which forwards to this page with ?ls={SAVEDID}.
+  //   Then the page skips its own consent/"About you", saves the code as ls_id, and (outside TEST_MODE)
+  //   only starts when a code is present. false = the page runs on its own (consent + "About you" included).
+  // Preview: click through freely, nothing is saved, no answers required. Also via the link ?preview=1
+  PREVIEW_MODE: false,
+  LIMESURVEY_MODE: false,
+  LIMESURVEY_URL: "https://survey.uni-koeln.de/index.php/326863?lang=de",
   // Quality / bot checks (only mark answers in the sheet, nobody is excluded automatically)
   MIN_TOTAL_MINUTES: 5,     // faster than this for the whole study -> flag_too_fast
   READING_WPM: 300,         // a rating page faster than reading all its explanations at this speed -> flag_too_fast
@@ -232,6 +252,7 @@ const STATS = {
       when = "Starts when", only = "Only if" (null = none), c = resulting light colour
    ===================================================================== */
 const EXPLANATION_TRIALS = { TC1:{C2:2, C3:1}, TC2:{C2:2, C3:1}, TC3:{C2:1, C3:3} };   // saved with every answer
+const RANK_PLACES = 2;   // how many rules participants rank (the rest stays "not placed")
 const LIGHT = { green:"var(--l-green)", orange:"var(--l-orange)", blue:"var(--l-blue)", off:"var(--l-off)" };
 const RULES = {
   notoccupied:{c:"green", owner:"Alice",
@@ -247,8 +268,8 @@ const RULES = {
     en:{name:"Sunny at Lunch", when:"the forecast says sun", only:"it is lunchtime (11:00–13:00)"},
     de:{name:"Sonne zur Mittagszeit", when:"die Vorhersage Sonne meldet", only:"es Mittagszeit ist (11:00–13:00)"}},
   danger:{c:"orange", owner:"Alice", extra:{en:" and the fan runs on high", de:" und der Lüfter läuft auf hoch"},
-    en:{name:"Danger", when:"smoke, CO₂ or a fire alarm is detected", only:"it is between 08:00 and 18:00"},
-    de:{name:"Gefahr", when:"Rauch, CO₂ oder ein Feueralarm erkannt wird", only:"es zwischen 08:00 und 18:00 ist"}},
+    en:{name:"Danger", when:"smoke or too much carbon dioxide (CO₂) is detected", only:"it is between 08:00 and 18:00"},
+    de:{name:"Gefahr", when:"Rauch oder zu viel Kohlendioxid (CO₂) erkannt wird", only:"es zwischen 08:00 und 18:00 ist"}},
   closing:{c:"off", owner:"Alice",
     en:{name:"Closing Time", when:"it is between 18:00 and 23:00", only:null},
     de:{name:"Feierabend", when:"es zwischen 18:00 und 23:00 ist", only:null}},
@@ -264,7 +285,7 @@ const SCENARIOS = {
     story:{en:"You are Alice. It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door.",
            de:"Du bist Alice. Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
-    foils:["notoccupied","rain"],
+    foils:["notoccupied","occupied","rain","sunny","danger","closing"],
     explanations:{
       C0:{en:"The meeting room status light is orange and not green because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht grün, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
@@ -276,17 +297,17 @@ const SCENARIOS = {
           de:"Alice, die Regel „Besprechungsraum belegt“ wurde ausgelöst, da bei geschlossener Tür Bewegung erkannt wurde; daher hat das System die Statusleuchte auf orange gesetzt, um anzuzeigen, dass der Raum belegt ist. Die Regel „Besprechungsraum nicht belegt“ hätte die Leuchte auf grün geschaltet, aber ihre Bedingung „keine Bewegung“ war nicht erfüllt."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
-      {en:"The door is closed and movement was detected in the meeting room.", de:"Die Tür ist zu und im Besprechungsraum wurde Bewegung erkannt."},
-      {en:"It is lunchtime and the forecast says rain.", de:"Es ist Mittagszeit und die Vorhersage meldet Regen."},
-      {en:"It is lunchtime and the forecast says sun.", de:"Es ist Mittagszeit und die Vorhersage meldet Sonne."},
-      {en:"Smoke was detected and it is between 08:00 and 18:00.", de:"Es wurde Rauch erkannt und es ist zwischen 8 und 18 Uhr."}]}
+      {en:"Someone is in the meeting room, so it counts as occupied.", de:"Es ist jemand im Besprechungsraum, deshalb gilt er als belegt."},
+      {en:"It is raining at lunchtime.", de:"Es regnet zur Mittagszeit."},
+      {en:"The sun is shining at lunchtime.", de:"Zur Mittagszeit scheint die Sonne."},
+      {en:"Smoke was detected.", de:"Es wurde Rauch erkannt."}]}
   },
   TC2: {
     person:"Bob", colleague:true, group:true, time:"12:10", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Bob. You created a rule that turns the status light blue when it is raining at lunchtime, to remind everyone to take a coat or an umbrella. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
-           de:"Du bist Bob. Du hast eine Regel erstellt, die das Statuslicht blau schaltet, wenn es zur Mittagszeit regnet – damit alle an Jacke oder Regenschirm denken. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Bob. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
+           de:"Du bist Bob. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
-    foils:["notoccupied","rain"],
+    foils:["notoccupied","occupied","rain","sunny","danger","closing"],
     explanations:{
       C0:{en:"The meeting room status light is orange and not blue because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht blau, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
@@ -297,18 +318,18 @@ const SCENARIOS = {
       C3:{en:"The light is orange because motion was detected in the meeting room, so the system considered the room occupied and applied the rule that sets the status light to orange. If there had been no motion, the 'Meeting room not occupied' rule would have turned the light green instead.",
           de:"Das Licht ist orange, da im Besprechungsraum Bewegung erkannt wurde; daher hat das System den Raum als belegt eingestuft und die Regel angewendet, die die Statusleuchte auf orange setzt. Hätte es keine Bewegung gegeben, hätte die Regel „Besprechungsraum nicht belegt“ das Licht stattdessen grün gemacht."}
     },
-    mcq:{ q:{en:"According to the explanations, which rule turned the status light orange?", de:"Welche Regel hat das Statuslicht laut den Erklärungen orange geschaltet?"}, correct:1, opts:[
-      {en:"Rain at Lunch", de:"Regen zur Mittagszeit"},
-      {en:"Meeting Room Occupied", de:"Besprechungsraum belegt"},
-      {en:"Sunny at Lunch", de:"Sonne zur Mittagszeit"},
-      {en:"Danger", de:"Gefahr"}]}
+    mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
+      {en:"Someone is in the meeting room, so it counts as occupied.", de:"Es ist jemand im Besprechungsraum, deshalb gilt er als belegt."},
+      {en:"It is raining at lunchtime.", de:"Es regnet zur Mittagszeit."},
+      {en:"The sun is shining at lunchtime.", de:"Zur Mittagszeit scheint die Sonne."},
+      {en:"Smoke was detected.", de:"Es wurde Rauch erkannt."}]}
   },
   TC3: {
     person:"Alice", colleague:false, time:"08:00", weather:"sun", door:"crack", full:false, light:"off",
     story:{en:"You are Alice. It is 08:00 in the morning and you have just arrived at the office. On the way to your desk you walk past the meeting room. The door is slightly open. You look at the status light above the door.",
            de:"Du bist Alice. Es ist 8:00 Uhr morgens und du bist gerade im Büro angekommen. Auf dem Weg zu deinem Schreibtisch gehst du am Besprechungsraum vorbei. Die Tür ist einen Spalt offen. Du schaust auf das Statuslicht über der Tür."},
     ask:{en:"Why is the status light off?", de:"Warum ist das Statuslicht aus?"},
-    foils:["notoccupied","occupied","rain","sunny","danger","closing"],   // nothing fired: all status-light rules are candidates
+    foils:["notoccupied","occupied","rain","sunny","danger","closing"],
     explanations:{
       C0:{en:"The meeting room status light is off and not green because not all preconditions are met: No motion in the meeting room, and the Contact Sensor Meeting Room is open.",
           de:"Die Statusanzeige des Besprechungsraums ist ausgeschaltet und nicht grün, weil nicht alle Voraussetzungen erfüllt sind: keine Bewegung im Besprechungsraum erkannt, und der Kontaktsensor des Besprechungsraums ist offen."},
@@ -320,10 +341,10 @@ const SCENARIOS = {
           de:"Die Regel „Besprechungsraum nicht belegt“ hätte die Statusleuchte auf Grün schalten sollen, da die Tür offen war und keine Bewegung erkannt wurde; ihr Auslöser wird jedoch nur aktiviert, wenn der Türsensor auf „On“ wechselt. Da die Tür zu diesem Zeitpunkt bereits offen war, wurde der Auslöser nicht aktiviert, sodass keine Regel ausgelöst wurde und die Leuchte ausgeschaltet blieb."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light off?", de:"Warum ist das Statuslicht laut den Erklärungen aus?"}, correct:0, opts:[
-      {en:"“Meeting Room Not Occupied” did not start, because the door was not newly opened.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil die Tür nicht neu geöffnet wurde."},
-      {en:"“Meeting Room Not Occupied” did not start, because movement was detected in the room.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil im Raum Bewegung erkannt wurde."},
-      {en:"“Meeting Room Not Occupied” did not start, because the door sensor has failed.", de:"„Besprechungsraum nicht belegt“ ist nicht gestartet, weil der Türsensor ausgefallen ist."},
-      {en:"“Rain at Lunch” did not start, because it is not lunchtime yet.", de:"„Regen zur Mittagszeit“ ist nicht gestartet, weil noch keine Mittagszeit ist."}]}
+      {en:"The door was already open, so nothing happened that could turn the light on.", de:"Die Tür war schon offen, deshalb ist nichts passiert, was das Licht hätte einschalten können."},
+      {en:"Someone is still moving inside the meeting room.", de:"Im Besprechungsraum bewegt sich noch jemand."},
+      {en:"The door sensor is broken.", de:"Der Türsensor ist kaputt."},
+      {en:"It is closing time.", de:"Es ist Feierabend."}]}
   }
 };
 
@@ -343,7 +364,7 @@ const T = {
    people:["Read who Alice and Bob are. You will take on their role later."],
    quiz:["Answer the 3 questions. You will see the right answer straight away."],
    story:["Read the situation carefully and imagine you are this person."],
-   rank:["Look at the office picture.","Click the question button.","Put the rules in order by what you expected instead.","Click “Lock in my order”."],
+   rank:["Look at the office picture.","Click the question button.","Choose the colour you expected instead, then place the two rules you expected most.","Click “Lock in my order”."],
    rate2:["Read both explanations.","Rate each one on the 5 statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
    rate:["Read all three explanations.","Rate each one on the 5 statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
    final:["Answer the check question. The two feedback questions are optional."]},
@@ -360,7 +381,7 @@ const T = {
   techbg:"Do you have a technical background (e.g. computer science, engineering)?", yesno:["Yes","No"],
   office_h:"The smart office",
   office_p:"This is the office where Alice and Bob work. It has a meeting room. From the outside you can't see whether someone is inside, so there is a status light above the meeting-room door. Its colour is set automatically by the smart office system, which follows a set of rules.",
-  office_p2:"The rules in this office were created by different people and don't always fit together well. Some of them can apply at the same time, and three different rules can turn the light orange. That's why the status light is not always what people expect.",
+  office_p2:"The rules in this office were created by different people and don't always fit together well. Some rules can apply at the same time. Also, different rules can have the same result: more than one rule can turn the light orange. That is also why the status light can be confusing.",
   smartex_h:"SmartEx, the explanation assistant",
   smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it.",
   dev_h:"The smart devices", dev_p:"Click each highlighted device to see what it does. When you have looked at all seven, you can continue.",
@@ -371,7 +392,7 @@ const T = {
    light:["Status light","The status light shows people outside the meeting room different colours for different states, for example green = the meeting room is currently not occupied."],
    weather:["Weather forecast","This display shows the weather forecast, for example rain or sun."],
    clock:["Clock","The office knows the time. Some rules only apply at certain times. The note above the clock shows the most important times."],
-   smoke:["Smoke and CO₂ detector","The detector notices smoke, CO₂ or a fire alarm."],
+   smoke:["Smoke and CO₂ detector","This detector senses smoke or too much carbon dioxide (CO₂)."],
    fan:["Ventilation fan","The ventilation fan used in the meeting room."]},
   labels:{room:"Meeting room", forecast:"Forecast", you:"You", motion:"motion sensor", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00–23:00"},
   door_h:"Looking at the meeting room", door_p:"Try it out: change the door and the room below. When the door is slightly open, you can see through the gap whether people are inside. When it is closed, you can't.",
@@ -385,16 +406,17 @@ const T = {
   quiz_h:"Quick check", quiz_p:"Let's see if everything is clear. You will see the right answer after you choose.",
   quiz:[
    {q:"When is lunchtime in this office?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
-   {q:"What does the motion sensor detect?", o:["If the door is open","If someone is moving inside the meeting room","The time"], c:1},
-   {q:"What does SmartEx do?", o:["It controls the devices in the office","It explains situations you don't understand","It creates new rules for the office"], c:1}],
+   {q:"What does the motion sensor detect?", o:["If the door is open","If someone is moving inside the meeting room","If someone is moving outside the meeting room"], c:1},
+   {q:"What can you do if something in the office is unclear to you?", o:["Change the rules","Ask SmartEx for an explanation","Restart the system"], c:1}],
   right:"Correct!", wrong:"Not quite. The right answer is: ",
-  sit:(n)=>`Situation ${n} of 3`, story_h:"What is happening", 
+  sit:(n)=>`Situation ${n} / 3`, story_h:"What is happening", 
   ask_h:"Ask SmartEx", 
   st:{time:"Time", weather:"Weather", rain:"Rain", sun:"Sunny", door:"Meeting-room door", crack:"slightly open", closed:"closed", light:"Status light", green:"green", orange:"orange", blue:"blue", off:"off"},
   ask_btn:q=>`Ask SmartEx: “${q}”`, bot:"SmartEx", me:"You",
-  bot_back:"Before I answer: what did you expect instead of the current status light? Put these rules in order.",
-  rank_help:"Drag each rule onto a numbered place (or tap a rule, then tap a place). Place 1 = the rule you expected most. You can move rules around until you lock in your order. Details on each rule are in the office note.",
-  top:"expected most", bottom:"expected least", pool_lbl:"Not placed yet", pool_empty:"All rules are placed.", slots_lbl:"Your order",
+  bot_back:"Before I answer: which colour did you expect the status light to show instead?",
+  bot_rules:"And why? Which rules did you expect to be responsible? Pick the two you expected most.",
+  rank_help:"Drag the two rules you expected most onto places 1 and 2 (or tap a rule, then tap a place). Place 1 = the rule you expected most. The other rules can stay where they are. Details on each rule are in the office note.",
+  top:"expected most", bottom:"expected second most", pool_lbl:"All rules", pool_empty:"", slots_lbl:"Your two most expected rules",
   your_rule:"Your rule",
   lock:"Lock in my order", locked:"Your order is locked in.", lock_first:"Please lock in your order to continue.",
   bot_thanks:"Thank you! On the next page you will see my explanation.",
@@ -407,10 +429,11 @@ const T = {
   final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)",
   attn:"To show you are reading carefully, please choose “Blue”.", attn_o:["Green","Orange","Blue","Off"],
   end_h:"Thank you!", end_p:"You have finished the study. Your answers help to make smart offices easier to understand.",
-  saved:"Your answers have been saved.", notsaved:"Your answers could not be sent. Please check your internet connection and try again.", retry:"Try again",
+  gate_h:"Please start the study here", gate_p:"This study starts with a short questionnaire in LimeSurvey. From there, you will be forwarded to this page automatically.", gate_btn:"Go to the questionnaire",
+  saved:"Your answers have been saved.", notsaved:"Your answers could not be sent. Please check your internet connection and try again. If you use Brave or an ad blocker, please turn it off for this page and try again.", retry:"Try again",
   cont_survey:"Continue", debug:"Collected data (test mode only)",
   notes_intro:"This is the office note. It lists all rules and your current situation. You can look at it at any time during the study.", got_it:"Got it",
-  notes_title:"Office note", notes_btn:"Office note", close:"Close",
+  notes_title:"Office note", notes_btn:"Office note", close:"Close", hide:"Hide", preview_bar:"Preview mode – nothing is saved", preview_jump:"Jump to", preview_end:"Preview mode: nothing was saved.",
   n_story:"Your situation", n_times:"Times", n_rules:"Rules for the status light", n_owner:"Created by",
   n_stats:(r,a,b)=>`Fired ${r}× · explained to Alice ${a}× and Bob ${b}× (past 90 days)`,
  },
@@ -426,7 +449,7 @@ const T = {
    people:["Lies, wer Alice und Bob sind. Später schlüpfst du in ihre Rolle."],
    quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
    story:["Lies die Situation aufmerksam und stell dir vor, du bist diese Person."],
-   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Bring die Regeln in die Reihenfolge, die du stattdessen erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
+   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Wähle die Farbe, die du stattdessen erwartet hast, und lege dann die zwei Regeln ab, die du am meisten erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
    rate2:["Lies beide Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
@@ -443,7 +466,7 @@ const T = {
   techbg:"Hast du einen technischen Hintergrund (z. B. Informatik, Ingenieurwesen)?", yesno:["Ja","Nein"],
   office_h:"Das smarte Büro",
   office_p:"Das ist das Büro, in dem Alice und Bob arbeiten. Es hat einen Besprechungsraum. Von außen sieht man nicht, ob jemand drin ist, deshalb gibt es über der Tür ein Statuslicht. Seine Farbe setzt das Smart-Office-System automatisch – nach bestimmten Regeln.",
-  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt und passen nicht immer gut zusammen. Manche können gleichzeitig gelten, und drei verschiedene Regeln können das Licht orange schalten. Deshalb ist das Statuslicht nicht immer so, wie man es erwartet.",
+  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt und passen nicht immer gut zusammen. Manche Regeln können gleichzeitig gelten. Außerdem können verschiedene Regeln dasselbe bewirken: Mehr als eine Regel kann das Licht orange schalten. Auch deshalb kann das Statuslicht verwirrend sein.",
   smartex_h:"SmartEx, der Erklär-Assistent",
   smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen.",
   dev_h:"Die smarten Geräte", dev_p:"Klicke auf jedes markierte Gerät, um zu sehen, was es macht. Wenn du dir alle sieben angesehen hast, geht es weiter.",
@@ -454,7 +477,7 @@ const T = {
    light:["Statuslicht","Das Statuslicht zeigt den Leuten außerhalb des Besprechungsraums verschiedene Farben für verschiedene Zustände, zum Beispiel grün = der Besprechungsraum ist gerade nicht belegt."],
    weather:["Wettervorhersage","Dieses Display zeigt die Wettervorhersage, zum Beispiel Regen oder Sonne."],
    clock:["Uhr","Das Büro kennt die Uhrzeit. Manche Regeln gelten nur zu bestimmten Zeiten. Die Notiz über der Uhr zeigt die wichtigsten Zeiten."],
-   smoke:["Rauch- und CO₂-Melder","Der Melder erkennt Rauch, CO₂ oder einen Feueralarm."],
+   smoke:["Rauch- und CO₂-Melder","Dieser Melder erkennt Rauch oder zu viel Kohlendioxid (CO₂)."],
    fan:["Lüfter","Der Lüfter im Besprechungsraum."]},
   labels:{room:"Besprechungsraum", forecast:"Vorhersage", you:"Du", motion:"Bewegungsmelder", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00–23:00"},
   door_h:"Blick auf den Besprechungsraum", door_p:"Probier es aus: Ändere unten die Tür und den Raum. Wenn die Tür einen Spalt offen ist, siehst du durch den Spalt, ob Leute drin sind. Wenn sie zu ist, nicht.",
@@ -468,16 +491,17 @@ const T = {
   quiz_h:"Kurzer Check", quiz_p:"Mal sehen, ob alles klar ist. Nach deiner Wahl siehst du die richtige Antwort.",
   quiz:[
    {q:"Wann ist in diesem Büro Mittagszeit?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
-   {q:"Was erkennt der Bewegungsmelder?", o:["Ob die Tür offen ist","Ob sich jemand im Besprechungsraum bewegt","Die Uhrzeit"], c:1},
-   {q:"Was macht SmartEx?", o:["Es steuert die Geräte im Büro","Es erklärt Situationen, die man nicht versteht","Es erstellt neue Regeln für das Büro"], c:1}],
+   {q:"Was erkennt der Bewegungsmelder?", o:["Ob die Tür offen ist","Ob sich jemand im Besprechungsraum bewegt","Ob sich jemand außerhalb des Besprechungsraums bewegt"], c:1},
+   {q:"Was kannst du tun, wenn dir im Büro etwas unklar ist?", o:["Die Regeln ändern","SmartEx um eine Erklärung bitten","Das System neu starten"], c:1}],
   right:"Richtig!", wrong:"Nicht ganz. Richtig ist: ",
-  sit:(n)=>`Situation ${n} von 3`, story_h:"Was passiert gerade",
+  sit:(n)=>`Situation ${n} / 3`, story_h:"Was passiert gerade",
   ask_h:"Frag SmartEx",
   st:{time:"Uhrzeit", weather:"Wetter", rain:"Regen", sun:"Sonnig", door:"Tür Besprechungsraum", crack:"einen Spalt offen", closed:"zu", light:"Statuslicht", green:"grün", orange:"orange", blue:"blau", off:"aus"},
   ask_btn:q=>`Frag SmartEx: „${q}“`, bot:"SmartEx", me:"Du",
-  bot_back:"Bevor ich antworte: Was hast du statt des gezeigten Statuslichts erwartet? Bring diese Regeln in eine Reihenfolge.",
-  rank_help:"Ziehe jede Regel auf einen nummerierten Platz (oder tippe eine Regel an und dann einen Platz). Platz 1 = die Regel, die du am meisten erwartet hast. Du kannst die Regeln verschieben, bis du deine Reihenfolge festlegst. Details zu jeder Regel findest du in der Büronotiz.",
-  top:"am meisten erwartet", bottom:"am wenigsten erwartet", pool_lbl:"Noch nicht eingeordnet", pool_empty:"Alle Regeln sind eingeordnet.", slots_lbl:"Deine Reihenfolge",
+  bot_back:"Bevor ich antworte: Welche Farbe hättest du stattdessen beim Statuslicht erwartet?",
+  bot_rules:"Und warum? Welche Regeln hast du dafür erwartet? Wähle die zwei, die du am meisten erwartet hast.",
+  rank_help:"Ziehe die zwei Regeln, die du am meisten erwartet hast, auf Platz 1 und 2 (oder tippe eine Regel an und dann einen Platz). Platz 1 = die Regel, die du am meisten erwartet hast. Die übrigen Regeln können liegen bleiben. Details zu jeder Regel findest du in der Büronotiz.",
+  top:"am meisten erwartet", bottom:"am zweitmeisten erwartet", pool_lbl:"Alle Regeln", pool_empty:"", slots_lbl:"Deine zwei am meisten erwarteten Regeln",
   your_rule:"Deine Regel",
   lock:"Reihenfolge festlegen", locked:"Deine Reihenfolge ist festgelegt.", lock_first:"Bitte lege deine Reihenfolge fest, um weiterzumachen.",
   bot_thanks:"Danke! Auf der nächsten Seite siehst du meine Erklärung.",
@@ -490,10 +514,11 @@ const T = {
   final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)",
   attn:"Um zu zeigen, dass du aufmerksam liest, wähle bitte „Blau“.", attn_o:["Grün","Orange","Blau","Aus"],
   end_h:"Vielen Dank!", end_p:"Du hast die Studie abgeschlossen. Deine Antworten helfen, smarte Büros verständlicher zu machen.",
-  saved:"Deine Antworten wurden gespeichert.", notsaved:"Deine Antworten konnten nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuche es erneut.", retry:"Erneut versuchen",
+  gate_h:"Bitte starte die Studie hier", gate_p:"Die Studie beginnt mit einem kurzen Fragebogen in LimeSurvey. Von dort wirst du automatisch auf diese Seite weitergeleitet.", gate_btn:"Zum Fragebogen",
+  saved:"Deine Antworten wurden gespeichert.", notsaved:"Deine Antworten konnten nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuche es erneut. Falls du Brave oder einen Werbeblocker nutzt, schalte ihn bitte für diese Seite aus und versuche es erneut.", retry:"Erneut versuchen",
   cont_survey:"Weiter", debug:"Gesammelte Daten (nur Testmodus)",
   notes_intro:"Das ist die Büronotiz. Hier findest du alle Regeln und deine aktuelle Situation. Du kannst sie während der Studie jederzeit ansehen.", got_it:"Verstanden",
-  notes_title:"Büronotiz", notes_btn:"Büronotiz", close:"Schließen",
+  notes_title:"Büronotiz", notes_btn:"Büronotiz", close:"Schließen", hide:"Ausblenden", preview_bar:"Vorschau-Modus – es wird nichts gespeichert", preview_jump:"Springe zu", preview_end:"Vorschau-Modus: Es wurde nichts gespeichert.",
   n_story:"Deine Situation", n_times:"Zeiten", n_rules:"Regeln für das Statuslicht", n_owner:"Erstellt von",
   n_stats:(r,a,b)=>`${r}-mal ausgelöst · Alice ${a}-mal und Bob ${b}-mal erklärt (letzte 90 Tage)`,
  }
@@ -505,16 +530,21 @@ const T = {
 const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let pid = "P" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-let lang = (navigator.language||"en").toLowerCase().startsWith("de") ? "de" : "en";
+const URLP = new URLSearchParams(location.search);
+const LS_ID = (URLP.get("ls")||"").trim();
+const URL_LANG = (URLP.get("lang")||"").toLowerCase();
+const PREVIEW = !!SETTINGS.PREVIEW_MODE || URLP.get("preview")==="1";
+let lang = URL_LANG==="de"||URL_LANG==="en" ? URL_LANG : ((navigator.language||"en").toLowerCase().startsWith("de") ? "de" : "en");
 const t = () => T[lang];
 const contextMode = SETTINGS.CONTEXT_MODE==="split" ? (Math.random()<.5?"all":"basic") : SETTINGS.CONTEXT_MODE;
 
 let DATA = {
-  pid, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
+  pid, preview: PREVIEW, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
   context_mode:contextMode, context_setting:SETTINGS.CONTEXT_MODE,
   order:shuffle(["TC1","TC2","TC3"]), ab:{},
   consent:false, about:{}, tutorial:{seen:[], door_demo:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[],
-  webdriver: !!navigator.webdriver, pointer_moves:0, honeypot:""
+  webdriver: !!navigator.webdriver, pointer_moves:0, honeypot:"",
+  ls_id: LS_ID, limesurvey_mode: !!SETTINGS.LIMESURVEY_MODE
 };
 for (const tc of ["TC1","TC2","TC3"]) {
   const conds = SETTINGS.VARIANT==="C2" ? ["C0","C2"] : ["C0","C2","C3"];
@@ -522,21 +552,22 @@ for (const tc of ["TC1","TC2","TC3"]) {
   DATA.mcq_order = DATA.mcq_order || {}; DATA.mcq_order[tc] = shuffle([0,1,2,3]);
   DATA.quiz_order = DATA.quiz_order || [0,1,2].map(()=>shuffle([0,1,2]));   // answer order in the quick check
   const initial = shuffle(SCENARIOS[tc].foils);
-  DATA.rank[tc] = {initial, pool:[...initial], slots:Array(initial.length).fill(null), moves:0, asked:false, locked:false, log:[]};
+  DATA.rank[tc] = {initial, pool:[...initial], slots:Array(RANK_PLACES).fill(null), colour:null, moves:0, asked:false, locked:false, log:[]};
 }
 /* ---------- resume an unfinished session after a reload / closed tab ---------- */
 const STORE_KEY = "smartex_study_session";
 let resumeIdx = 0;
 try {
-  const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
-  if (saved && saved.DATA && !saved.DATA.finished_at){ DATA = saved.DATA; pid = DATA.pid; resumeIdx = saved.idx||0; lang = saved.lang||lang; (DATA.resumed ||= []).push(new Date().toISOString()); }
+  const saved = PREVIEW ? null : JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (saved && saved.DATA && !saved.DATA.finished_at && (!LS_ID || saved.DATA.ls_id===LS_ID)){ DATA = saved.DATA; pid = DATA.pid; resumeIdx = saved.idx||0; lang = saved.lang||lang; (DATA.resumed ||= []).push(new Date().toISOString()); }
 } catch(e){}
-function persist(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify({DATA, idx, lang})); }catch(e){} }
+function persist(){ if (PREVIEW) return; try{ localStorage.setItem(STORE_KEY, JSON.stringify({DATA, idx, lang})); }catch(e){} }
 
-const SCREENS = ["start","about","office","devices","door","rules","people","quiz",
+const LS_GATE = SETTINGS.LIMESURVEY_MODE && !LS_ID && !SETTINGS.TEST_MODE && !PREVIEW;   // no code: show the LimeSurvey note only
+const SCREENS = LS_GATE ? ["gate"] : [...(SETTINGS.LIMESURVEY_MODE ? [] : ["start","about"]),"office","devices","door","rules","people","quiz",
   ...DATA.order.flatMap(tc=>["story:"+tc,"rank:"+tc,"rate:"+tc]), "final","end"];
 const NOTES_FROM = SCREENS.indexOf("rules");
-let idx = Math.min(resumeIdx, SCREENS.length-2), enteredAt = Date.now(), openDev = null;
+let idx = Math.max(0, Math.min(resumeIdx, SCREENS.length-2)), enteredAt = Date.now(), openDev = null;
 const demo = {door:"crack", full:false};
 const app = document.getElementById("app");
 
@@ -645,13 +676,13 @@ function notesHTML(){
   const tt = t(), tc = curTC();
   const rules = Object.entries(RULES).map(([id,r])=>`<div class="nrule">${ruleBlock(id)}<div class="own">${tt.n_owner}: <b>${r.owner}</b></div>
     ${contextMode==="all"?`<div class="own">${tt.n_stats(STATS[id].ran,STATS[id].explained.Alice,STATS[id].explained.Bob)}</div>`:""}</div>`).join("");
-  return `<div class="pin" aria-hidden="true"></div><div class="notes-head"><h3>${tt.notes_title}</h3><button type="button" class="btn ghost small notes-close" id="notes-close">${tt.close}</button></div>
+  return `<div class="pin" aria-hidden="true"></div><div class="notes-head"><h3>${tt.notes_title}</h3><button type="button" class="btn ghost small notes-close" id="notes-close">${tt.close}</button><button type="button" class="btn ghost small notes-fold" id="notes-fold">${tt.hide}</button></div>
     ${tc?`<div class="sec"><b>${tt.n_story}</b><p style="margin:.3em 0 0"><i>${esc(tt.persona[SCENARIOS[tc].person])}</i></p><p style="margin:.3em 0 0">${esc(SCENARIOS[tc].story[lang])}</p></div>`:""}
     <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
     <div class="sec"><b>${tt.n_rules}</b>${rules}</div>`;
 }
 function renderNotes(){
-  const on = idx>=NOTES_FROM && SCREENS[idx]!=="end";
+  const on = NOTES_FROM>=0 && idx>=NOTES_FROM && SCREENS[idx]!=="end";
   const hintEl = document.getElementById("notes-hint");
   const showHint = on && !DATA.notes_hint_done;
   hintEl.hidden = !showHint; document.body.classList.toggle("hinting", showHint);
@@ -659,6 +690,7 @@ function renderNotes(){
   document.body.classList.toggle("notes-on", on);
   const n = document.getElementById("notes"); n.innerHTML = on ? notesHTML() : "";
   document.getElementById("notes-tab").textContent = t().notes_btn;
+  document.getElementById("notes-show").textContent = t().notes_btn;
 }
 function openNotes(src){
   const n = document.getElementById("notes");
@@ -672,7 +704,7 @@ function nav(canGo){
   const showBack = idx>0 && SCREENS[idx]!=="end";
   return `<div class="nav"><span class="hint" id="hint"></span>
     ${showBack?`<button type="button" class="btn ghost" id="back">${t().back}</button>`:""}
-    <button type="button" class="btn" id="next" ${canGo?"":"disabled"}>${t().next}</button></div>`;
+    <button type="button" class="btn" id="next" ${canGo||PREVIEW?"":"disabled"}>${t().next}</button></div>`;
 }
 function radios(name, opts, sel, values){
   return opts.map((o,i)=>{ const v = values?values[i]:i;
@@ -683,6 +715,7 @@ const demoDone = () => ["crack-empty","crack-full"].every(k=>DATA.tutorial.door_
 
 /* ---------- screens ---------- */
 const R = {
+ gate(){ return `<h1>${t().gate_h}</h1><p>${t().gate_p}</p><p><a class="btn" href="${esc(SETTINGS.LIMESURVEY_URL)}">${t().gate_btn}</a></p>`; },
  start(){ return `<h1>${t().start_h}</h1>${taskBox("start")}<p>${t().start_p}</p><p class="muted">${t().start_p2}</p>
    <label class="opt"><input type="checkbox" id="consent" ${DATA.consent?"checked":""}><span>${t().consent}</span></label>${nav(DATA.consent)}`; },
  about(){ const a = DATA.about;
@@ -690,10 +723,11 @@ const R = {
    <fieldset><legend>${t().age}</legend>${radios("age",t().ages,a.age,T.en.ages)}</fieldset>
    <fieldset><legend>${t().tech}</legend>${radios("tech",t().techs,a.tech,[1,2,3,4])}</fieldset>
    <fieldset><legend>${t().techbg}</legend>${radios("techbg",t().yesno,a.techbg,["yes","no"])}</fieldset>
-   <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden"><label for="hp_website">Website</label><input type="text" id="hp_website" name="hp_website" tabindex="-1" autocomplete="off" value="${esc(DATA.honeypot||"")}"></div>${nav(true)}`; },
+${nav(true)}`; },
  office(){ return `<h2>${t().office_h}</h2>${taskBox("office")}<div class="scene">${officeSVG(DEFAULT_STATE)}</div>
    <p style="margin-top:16px">${t().office_p}</p><p>${t().office_p2}</p>
-   <h3>${t().smartex_h}</h3><p>${t().smartex_p}</p>${nav(true)}`; },
+   <h3>${t().smartex_h}</h3><p>${t().smartex_p}</p>
+   <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden"><label for="hp_website">Website</label><input type="text" id="hp_website" name="hp_website" tabindex="-1" autocomplete="off" value="${esc(DATA.honeypot||"")}"></div>${nav(true)}`; },
  devices(){ const k = openDev;
    return `<h2>${t().dev_h}</h2>${taskBox("devices")}<p>${t().dev_p}</p><div class="scene">${officeSVG(DEFAULT_STATE,true)}</div>
    ${k?`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">${esc(t().dev[k][0])}</h3><p style="margin:0">${esc(t().dev[k][1])}</p>
@@ -736,7 +770,7 @@ const personaTag = who => `<div class="persona">${avatar(who)}<span>${esc(t().pe
 
 function storyScreen(tc){
   const s = SCENARIOS[tc];
-  return `<p class="eyebrow">${t().sit(sitNo(tc))}</p><h2>${t().story_h}</h2>${personaTag(s.person)}${taskBox("story")}
+  return `<p class="sitbadge">${t().sit(sitNo(tc))}</p><h2>${t().story_h}</h2>${personaTag(s.person)}${taskBox("story")}
     <div class="card person">${avatar(s.person)}<p class="story" style="margin:0">${esc(s.story[lang])}</p></div>${nav(true)}`;
 }
 
@@ -749,9 +783,12 @@ function rankScreen(tc){
   let chat = `<div class="chat">`;
   if (!d.asked) chat += `<button type="button" class="btn" id="ask" style="align-self:flex-end">${esc(tt.ask_btn(s.ask[lang]))}</button>`;
   else {
-    const allPlaced = d.pool.length===0;
+    const allPlaced = d.slots.every(Boolean) && !!d.colour;
     chat += `<div class="msg me"><span class="who">${tt.me}</span>${esc(s.ask[lang])}</div>
       <div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${tt.bot_back}</b>
+      <div class="seg" role="group" style="margin-top:8px">${["green","orange","blue","off"].filter(c=>c!==s.light).map(c=>`<button type="button" data-colour="${c}" aria-pressed="${d.colour===c}" ${d.locked?"disabled":""}><span class="swatch" style="background:${LIGHT[c]}"></span> ${tt.st[c]}</button>`).join("")}</div>
+      </div>
+      ${d.colour?`<div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${tt.bot_rules}</b>
       ${d.locked?"":`<p class="muted" style="margin:.4em 0 0;font-size:15px">${tt.rank_help}</p>`}
       <div class="rank-area ${d.locked?"locked":""}">
         ${d.locked?"":`<div class="zone-lbl">${tt.pool_lbl}</div><div class="pool ${d.pool.length?"":"empty"}" data-pool="1" data-empty="${esc(tt.pool_empty)}">${d.pool.map(id=>tile(tc,id,false)).join("")}</div>`}
@@ -759,11 +796,11 @@ function rankScreen(tc){
         <ol class="slots">${d.slots.map((id,i)=>`<li class="slot ${id?"filled":""}" data-slot="${i}"><span class="no">${i+1}</span>${id?tile(tc,id,d.locked):""}
           ${i===0?`<span class="cap">${tt.top}</span>`:i===n-1?`<span class="cap">${tt.bottom}</span>`:""}</li>`).join("")}</ol>
       </div>
-      ${d.locked?`<div class="lockmsg">${tt.locked}</div>`:`<button type="button" class="btn" id="lock" style="margin-top:12px" ${allPlaced?"":"disabled"}>${tt.lock}</button>`}</div>`;
+      ${d.locked?`<div class="lockmsg">${tt.locked}</div>`:`<button type="button" class="btn" id="lock" style="margin-top:12px" ${allPlaced?"":"disabled"}>${tt.lock}</button>`}</div>`:""}`;
     if (d.locked) chat += `<div class="msg bot"><span class="who">${tt.bot}</span>${tt.bot_thanks}</div>`;
   }
   chat += `</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>${personaTag(s.person)}${taskBox("rank")}
+  return `<p class="sitbadge">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>${personaTag(s.person)}${taskBox("rank")}
     <div class="scene">${officeSVG(s)}</div>${statusChips(s)}${chat}${nav(d.locked)}`;
 }
 const sides = tc => DATA.ab[tc].C ? ["A","B","C"] : ["A","B"];   // explanation labels shown for this situation
@@ -775,7 +812,7 @@ function rateScreen(tc){
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
   const answer = side => `<div class="card answer ${side==="B"?"b":""}"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
     <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
-  return `<p class="eyebrow">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox(sides(tc).length===3?"rate":"rate2", null, tt.rate_note)}<p>${tt.rate_p(sides(tc).length)}</p>
+  return `<p class="sitbadge">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox(sides(tc).length===3?"rate":"rate2", null, tt.rate_note)}<p>${tt.rate_p(sides(tc).length)}</p>
    <div class="card"><b>${tt.your_q}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
    <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
    <div class="card" style="margin-top:14px"><fieldset style="margin:0"><legend>${tt.pref}</legend>${radios("pref",sides(tc).map(x=>tt.expl+" "+x),d.pref,sides(tc))}</fieldset></div>
@@ -849,8 +886,27 @@ function render(){
   const sc = SCREENS[idx], [kind,tc] = sc.split(":");
   app.innerHTML = kind==="story" ? storyScreen(tc) : kind==="rank" ? rankScreen(tc) : kind==="rate" ? rateScreen(tc) : R[sc]();
   renderNotes();
+  renderPreviewBar();
   if (sc==="end") save();
 }
+function screenLabel(sc){
+  const [k,tc] = sc.split(":");
+  const names = {gate:"LimeSurvey note", start:"Welcome", about:"About you", office:"Smart office", devices:"Devices", door:"Door demo", rules:"Rules",
+    people:"Alice and Bob", quiz:"Quick check", story:"Story", rank:"Ask SmartEx", rate:"Rate", final:"Final questions", end:"End"};
+  return tc ? `${tc} – ${names[k]}` : names[k] || sc;
+}
+function renderPreviewBar(){
+  const bar = document.getElementById("preview-bar");
+  if (!PREVIEW){ bar.hidden = true; return; }
+  bar.hidden = false;
+  bar.innerHTML = `<div class="in"><b>${esc(t().preview_bar)}</b><label>${esc(t().preview_jump)}
+    <select id="preview-jump">${SCREENS.map((sc,i)=>`<option value="${i}" ${i===idx?"selected":""}>${esc(screenLabel(sc))}</option>`).join("")}</select></label></div>`;
+}
+document.getElementById("preview-bar").addEventListener("change", e=>{
+  if (e.target.id!=="preview-jump") return;
+  idx = Number(e.target.value); enteredAt = Date.now(); openDev = null; ui.sel = null;
+  render(); window.scrollTo({top:0});
+});
 function go(delta){
   const sc = SCREENS[idx];
   DATA.timing[sc] = (DATA.timing[sc]||0) + (Date.now()-enteredAt);
@@ -862,6 +918,7 @@ function go(delta){
   if (sc.startsWith("rate:") && delta>0) sendToSheet(false);   // partial row after each situation
 }
 function validate(){
+  if (PREVIEW) return true;
   const sc = SCREENS[idx], [kind,tc] = sc.split(":");
   if (sc==="about") return !!(DATA.about.age && DATA.about.tech && DATA.about.techbg);
   if (sc==="final") return !!DATA.final.attention;
@@ -890,7 +947,8 @@ app.addEventListener("click", e=>{
   if (el.dataset.demo){ if (el.dataset.demo==="door") demo.door = el.dataset.v; else demo.full = el.dataset.v==="full";
     const k = demoKey(); if (!DATA.tutorial.door_demo.includes(k)) DATA.tutorial.door_demo.push(k); render(); return; }
   if (el.id==="ask"){ DATA.rank[tc].asked = true; DATA.rank[tc].asked_after_ms = Date.now()-enteredAt; render(); return; }
-  if (el.id==="lock"){ const d = DATA.rank[tc]; if (d.pool.length) return; d.locked = true; d.locked_order = [...d.slots]; d.locked_after_ms = Date.now()-enteredAt; d.locked_at = new Date().toISOString(); render(); return; }
+  if (el.dataset.colour){ const d = DATA.rank[tc]; if (d.locked) return; d.colour = el.dataset.colour; d.log.push({how:"colour", colour:d.colour, at_ms:Date.now()-enteredAt}); render(); return; }
+  if (el.id==="lock"){ const d = DATA.rank[tc]; if (!d.slots.every(Boolean) || !d.colour) return; d.locked = true; d.locked_order = [...d.slots]; d.locked_after_ms = Date.now()-enteredAt; d.locked_at = new Date().toISOString(); render(); return; }
 });
 app.addEventListener("keydown", e=>{
   const el = e.target.closest("[data-hot]");
@@ -919,12 +977,16 @@ document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",
 document.getElementById("notes-tab").addEventListener("click",()=>{ openNotes("tab"); dismissHint(); });
 function dismissHint(){ if (DATA.notes_hint_done) return; DATA.notes_hint_done = true; DATA.notes_hint_at = SCREENS[idx]; renderNotes(); }
 document.getElementById("notes-hint").addEventListener("click", e=>{ if (e.target.id==="hint-ok") dismissHint(); });
-document.getElementById("notes").addEventListener("click", e=>{ if (e.target.id==="notes-close") document.getElementById("notes").classList.remove("open"); });
+document.getElementById("notes").addEventListener("click", e=>{
+  if (e.target.id==="notes-close") document.getElementById("notes").classList.remove("open");
+  if (e.target.id==="notes-fold"){ document.body.classList.add("notes-folded"); (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"hide", at_ms:Date.now()-enteredAt}); }
+});
+document.getElementById("notes-show").addEventListener("click", ()=>{ document.body.classList.remove("notes-folded"); (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"show", at_ms:Date.now()-enteredAt}); DATA.notes_opens.push({screen:SCREENS[idx], via:"show", at_ms:Date.now()-enteredAt}); });
 
 /* ---------- saving ---------- */
 // Flat summary for the spreadsheet: A/B/C are mapped back to C0 (SmartEx baseline), C2 and C3 (GPT-OSS + P1).
 function summary(){
-  const o = {pid, finished: !!DATA.finished_at, started: DATA.started, finished_at: DATA.finished_at||"",
+  const o = {pid, ls_id: DATA.ls_id||"", limesurvey_mode: !!DATA.limesurvey_mode, finished: !!DATA.finished_at, started: DATA.started, finished_at: DATA.finished_at||"",
     lang_start: DATA.lang_start, context_mode: DATA.context_mode, order: DATA.order.join(" "),
     age: DATA.about.age||"", smarthome_familiarity: DATA.about.tech||"", tech_background: DATA.about.techbg||"",
     quiz_correct: Object.values(DATA.quiz).filter(q=>q.correct).length,
@@ -935,6 +997,7 @@ function summary(){
     o[`${tc}_rank_locked`] = r.locked_order ? r.locked_order.join(" > ") : "";
     o[`${tc}_rank_first`] = r.locked_order ? r.locked_order[0] : "";
     o[`${tc}_rank_moves`] = r.moves;
+    o[`${tc}_expected_colour`] = r.colour || "";
     o[`${tc}_rank_initial_pool`] = r.initial.join(" ");
     o[`${tc}_A_is`] = ab.A;
     o[`${tc}_B_is`] = ab.B; o[`${tc}_C_is`] = ab.C || "";
@@ -974,7 +1037,7 @@ function summary(){
   return o;
 }
 async function sendToSheet(finished){
-  if (!SETTINGS.SAVE_URL) return false;
+  if (PREVIEW || !SETTINGS.SAVE_URL) return false;
   const body = JSON.stringify({summary: summary(), raw: DATA});
   for (let attempt=0; attempt<3; attempt++){
     try{
@@ -987,8 +1050,9 @@ async function sendToSheet(finished){
 }
 let dbRef = null;
 (async()=>{ try{ const db = await window.claude?.use?.("db"); if (db) dbRef = db.collection("responses").doc(pid); }catch(e){} })();
-async function saveProgress(){ if(!dbRef) return; try{ await dbRef.set({...DATA, finished:false, updated:new Date().toISOString()}); }catch(e){} }
+async function saveProgress(){ if(PREVIEW || !dbRef) return; try{ await dbRef.set({...DATA, finished:false, updated:new Date().toISOString()}); }catch(e){} }
 async function save(){
+  if (PREVIEW){ const el = document.getElementById("savestate"); if (el) el.textContent = t().preview_end; return; }
   if (!DATA.finished_at) DATA.finished_at = new Date().toISOString();
   const el = () => document.getElementById("savestate");
   let ok = false;
