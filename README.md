@@ -6,7 +6,7 @@ The whole study is **one web page** (`index.html`). Participants take the role o
 
 **Study link:** https://mgobsch.github.io/thesis-study/
 **Preview link (nothing is saved):** https://mgobsch.github.io/thesis-study/?preview=1
-**LimeSurvey (part 1, optional):** https://survey.uni-koeln.de/index.php/326863?lang=de
+**LimeSurvey (part 1, optional):** https://survey.uni-koeln.de/index.php/326863?
 
 ---
 
