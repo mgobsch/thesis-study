@@ -133,7 +133,9 @@ body.hinting #notes{outline:4px solid #D92D20;outline-offset:4px;animation:ring 
 body.hinting .notes-tab{outline:4px solid #D92D20;outline-offset:3px;animation:ring 1.2s ease-in-out infinite}
 @keyframes ring{50%{outline-color:rgba(217,45,32,.25);outline-offset:9px}}
 @media (min-width:1100px){.notes-hint{right:360px;top:calc(env(safe-area-inset-top,0px) + 110px)}
-  .hint-arrow{right:-27px;top:18px;border-left-color:#D92D20}}
+  .hint-arrow{right:-27px;top:18px;border-left-color:#D92D20}
+  body.notes-folded .notes-hint{right:70px;top:calc(env(safe-area-inset-top,0px) + 86px)}}
+body.hinting #notes-show{outline:4px solid #D92D20;outline-offset:3px;animation:ring 1.2s ease-in-out infinite}
 @media (max-width:1099px){.notes-hint{right:12px;bottom:calc(76px + env(safe-area-inset-bottom,0px))}
   .hint-arrow{bottom:-27px;right:30px;border-top-color:#D92D20}}
 @media (prefers-reduced-motion:reduce){body.hinting #notes,body.hinting .notes-tab{animation:none}}
@@ -282,10 +284,10 @@ const RULES = {
 const SCENARIOS = {
   TC1: {
     person:"Alice", colleague:true, group:true, time:"12:08", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Alice. It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door.",
-           de:"Du bist Alice. Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Alice. It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. You see a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. You look at the status light above the door – it is not what you expected.",
+           de:"Du bist Alice. Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Du siehst eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Du schaust auf das Statuslicht über der Tür – es ist nicht so, wie du es erwartet hast."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
-    foils:["notoccupied","occupied","rain","sunny","danger","closing"],
+    foils:["notoccupied","rain","sunny","danger","closing"],   // "occupied" is the active rule, so it is not a candidate
     explanations:{
       C0:{en:"The meeting room status light is orange and not green because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht grün, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
@@ -304,10 +306,10 @@ const SCENARIOS = {
   },
   TC2: {
     person:"Bob", colleague:true, group:true, time:"12:10", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"You are Bob. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door.",
-           de:"Du bist Bob. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Bob. It is 12:10 now, and it is raining outside. A meeting has just ended in the meeting room. In front of the meeting room, a group of colleagues is standing and talking. You walk past the meeting room and look at the status light above the door – it is not what you expected.",
+           de:"Du bist Bob. Jetzt ist es 12:10 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Vor dem Besprechungsraum steht eine Gruppe von Kolleginnen und Kollegen und unterhält sich. Du gehst am Besprechungsraum vorbei und schaust auf das Statuslicht über der Tür – es ist nicht so, wie du es erwartet hast."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
-    foils:["notoccupied","occupied","rain","sunny","danger","closing"],
+    foils:["notoccupied","rain","sunny","danger","closing"],   // "occupied" is the active rule, so it is not a candidate
     explanations:{
       C0:{en:"The meeting room status light is orange and not blue because the occupancy of the meeting room has been detected and the contact sensor on the meeting room door is closed.",
           de:"Die Statusanzeige des Besprechungsraums leuchtet orange und nicht blau, da eine Belegung des Besprechungsraums festgestellt wurde und der Kontaktsensor an der Tür des Besprechungsraums geschlossen ist."},
@@ -326,8 +328,8 @@ const SCENARIOS = {
   },
   TC3: {
     person:"Alice", colleague:false, time:"08:00", weather:"sun", door:"crack", full:false, light:"off",
-    story:{en:"You are Alice. It is 08:00 in the morning and you have just arrived at the office. On the way to your desk you walk past the meeting room. The door is slightly open. You look at the status light above the door.",
-           de:"Du bist Alice. Es ist 8:00 Uhr morgens und du bist gerade im Büro angekommen. Auf dem Weg zu deinem Schreibtisch gehst du am Besprechungsraum vorbei. Die Tür ist einen Spalt offen. Du schaust auf das Statuslicht über der Tür."},
+    story:{en:"You are Alice. It is 08:00 in the morning and you have just arrived at the office. On the way to your desk you walk past the meeting room. The door is slightly open. You look at the status light above the door – it is not what you expected.",
+           de:"Du bist Alice. Es ist 8:00 Uhr morgens und du bist gerade im Büro angekommen. Auf dem Weg zu deinem Schreibtisch gehst du am Besprechungsraum vorbei. Die Tür ist einen Spalt offen. Du schaust auf das Statuslicht über der Tür – es ist nicht so, wie du es erwartet hast."},
     ask:{en:"Why is the status light off?", de:"Warum ist das Statuslicht aus?"},
     foils:["notoccupied","occupied","rain","sunny","danger","closing"],
     explanations:{
@@ -365,8 +367,8 @@ const T = {
    quiz:["Answer the 3 questions. You will see the right answer straight away."],
    story:["Read the situation carefully and imagine you are this person."],
    rank:["Look at the office picture.","Click the question button.","Choose the colour you expected instead, then place the two rules you expected most.","Click “Lock in my order”."],
-   rate2:["Read both explanations.","Rate each one on the 5 statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
-   rate:["Read all three explanations.","Rate each one on the 5 statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
+   rate2:["Read both explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
+   rate:["Read all three explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).","Choose the one you prefer.","Answer the question at the bottom."],
    final:["Answer the check question. The two feedback questions are optional."]},
   rate_note:"The explanations were generated automatically. Some may be unclear or not fully correct. Please rate each one honestly, the way you understand it.",
   persona:{Alice:"You are Alice · knows a bit about technology", Bob:"You are Bob · not technical, prefers everyday language"},
@@ -381,7 +383,7 @@ const T = {
   techbg:"Do you have a technical background (e.g. computer science, engineering)?", yesno:["Yes","No"],
   office_h:"The smart office",
   office_p:"This is the office where Alice and Bob work. It has a meeting room. From the outside you can't see whether someone is inside, so there is a status light above the meeting-room door. Its colour is set automatically by the smart office system, which follows a set of rules.",
-  office_p2:"The rules in this office were created by different people and don't always fit together well. Some rules can apply at the same time. Also, different rules can have the same result: more than one rule can turn the light orange. That is also why the status light can be confusing.",
+  office_p2:"The rules in this office were created by different people. Some rules can apply at the same time. Also, different rules can have the same result: more than one rule can turn the light orange. That is also why the status light can be confusing.",
   smartex_h:"SmartEx, the explanation assistant",
   smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it.",
   dev_h:"The smart devices", dev_p:"Click each highlighted device to see what it does. When you have looked at all seven, you can continue.",
@@ -423,7 +425,7 @@ const T = {
   rate_h:"Rate the explanations",
   rate_p:n=>n===3 ? "Here are three explanations from SmartEx for your question. Please read all three carefully and rate each one." : "Here are two explanations from SmartEx for your question. Please read both carefully and rate each one.",
   your_q:"Your question", expl:"Explanation", pref:"Which explanation do you prefer?",
-  lik_items:[["clear","The explanation is clear."],["underst","The explanation is easy to understand."],["helpful","The explanation is helpful."],["natural","The explanation sounds natural."],["trust","I would trust this explanation."]],
+  lik_items:[["underst","The explanation is easy to understand."],["helpful","The explanation is helpful."]],
   lik_scale:["1 = strongly disagree","5 = strongly agree"],
   mcq_h:"Your understanding",
   final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)",
@@ -432,7 +434,7 @@ const T = {
   gate_h:"Please start the study here", gate_p:"This study starts with a short questionnaire in LimeSurvey. From there, you will be forwarded to this page automatically.", gate_btn:"Go to the questionnaire",
   saved:"Your answers have been saved.", notsaved:"Your answers could not be sent. Please check your internet connection and try again. If you use Brave or an ad blocker, please turn it off for this page and try again.", retry:"Try again",
   cont_survey:"Continue", debug:"Collected data (test mode only)",
-  notes_intro:"This is the office note. It lists all rules and your current situation. You can look at it at any time during the study.", got_it:"Got it",
+  notes_intro:"Here you can open the office note. It lists all rules and your current situation. You can open it at any time during the study.", got_it:"Got it",
   notes_title:"Office note", notes_btn:"Office note", close:"Close", hide:"Hide", preview_bar:"Preview mode – nothing is saved", preview_jump:"Jump to", preview_end:"Preview mode: nothing was saved.",
   n_story:"Your situation", n_times:"Times", n_rules:"Rules for the status light", n_owner:"Created by",
   n_stats:(r,a,b)=>`Fired ${r}× · explained to Alice ${a}× and Bob ${b}× (past 90 days)`,
@@ -450,8 +452,8 @@ const T = {
    quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
    story:["Lies die Situation aufmerksam und stell dir vor, du bist diese Person."],
    rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.","Wähle die Farbe, die du stattdessen erwartet hast, und lege dann die zwei Regeln ab, die du am meisten erwartet hast.","Klicke auf „Reihenfolge festlegen“."],
-   rate2:["Lies beide Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
-   rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der 5 Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
+   rate2:["Lies beide Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
+   rate:["Lies alle drei Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).","Wähle die Erklärung, die dir am besten gefällt.","Beantworte die Frage unten."],
    final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
   rate_note:"Die Erklärungen wurden automatisch erstellt. Manche sind vielleicht unklar oder nicht ganz richtig. Bitte bewerte jede ehrlich so, wie du sie verstehst.",
   persona:{Alice:"Du bist Alice · kennt sich ein bisschen mit Technik aus", Bob:"Du bist Bob · nicht technisch, mag einfache Alltagssprache"},
@@ -466,7 +468,7 @@ const T = {
   techbg:"Hast du einen technischen Hintergrund (z. B. Informatik, Ingenieurwesen)?", yesno:["Ja","Nein"],
   office_h:"Das smarte Büro",
   office_p:"Das ist das Büro, in dem Alice und Bob arbeiten. Es hat einen Besprechungsraum. Von außen sieht man nicht, ob jemand drin ist, deshalb gibt es über der Tür ein Statuslicht. Seine Farbe setzt das Smart-Office-System automatisch – nach bestimmten Regeln.",
-  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt und passen nicht immer gut zusammen. Manche Regeln können gleichzeitig gelten. Außerdem können verschiedene Regeln dasselbe bewirken: Mehr als eine Regel kann das Licht orange schalten. Auch deshalb kann das Statuslicht verwirrend sein.",
+  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt. Manche Regeln können gleichzeitig gelten. Außerdem können verschiedene Regeln dasselbe bewirken: Mehr als eine Regel kann das Licht orange schalten. Auch deshalb kann das Statuslicht verwirrend sein.",
   smartex_h:"SmartEx, der Erklär-Assistent",
   smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen.",
   dev_h:"Die smarten Geräte", dev_p:"Klicke auf jedes markierte Gerät, um zu sehen, was es macht. Wenn du dir alle sieben angesehen hast, geht es weiter.",
@@ -508,7 +510,7 @@ const T = {
   rate_h:"Bewerte die Erklärungen",
   rate_p:n=>n===3 ? "Hier sind drei Erklärungen von SmartEx zu deiner Frage. Bitte lies alle drei aufmerksam und bewerte jede einzeln." : "Hier sind zwei Erklärungen von SmartEx zu deiner Frage. Bitte lies beide aufmerksam und bewerte jede einzeln.",
   your_q:"Deine Frage", expl:"Erklärung", pref:"Welche Erklärung gefällt dir besser?",
-  lik_items:[["clear","Die Erklärung ist klar."],["underst","Die Erklärung ist leicht zu verstehen."],["helpful","Die Erklärung ist hilfreich."],["natural","Die Erklärung klingt natürlich."],["trust","Ich würde dieser Erklärung vertrauen."]],
+  lik_items:[["underst","Die Erklärung ist leicht zu verstehen."],["helpful","Die Erklärung ist hilfreich."]],
   lik_scale:["1 = stimme gar nicht zu","5 = stimme voll zu"],
   mcq_h:"Dein Verständnis",
   final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)",
@@ -517,7 +519,7 @@ const T = {
   gate_h:"Bitte starte die Studie hier", gate_p:"Die Studie beginnt mit einem kurzen Fragebogen in LimeSurvey. Von dort wirst du automatisch auf diese Seite weitergeleitet.", gate_btn:"Zum Fragebogen",
   saved:"Deine Antworten wurden gespeichert.", notsaved:"Deine Antworten konnten nicht gesendet werden. Bitte prüfe deine Internetverbindung und versuche es erneut. Falls du Brave oder einen Werbeblocker nutzt, schalte ihn bitte für diese Seite aus und versuche es erneut.", retry:"Erneut versuchen",
   cont_survey:"Weiter", debug:"Gesammelte Daten (nur Testmodus)",
-  notes_intro:"Das ist die Büronotiz. Hier findest du alle Regeln und deine aktuelle Situation. Du kannst sie während der Studie jederzeit ansehen.", got_it:"Verstanden",
+  notes_intro:"Hier kannst du die Büronotiz öffnen. Darin findest du alle Regeln und deine aktuelle Situation. Du kannst sie während der Studie jederzeit öffnen.", got_it:"Verstanden",
   notes_title:"Büronotiz", notes_btn:"Büronotiz", close:"Schließen", hide:"Ausblenden", preview_bar:"Vorschau-Modus – es wird nichts gespeichert", preview_jump:"Springe zu", preview_end:"Vorschau-Modus: Es wurde nichts gespeichert.",
   n_story:"Deine Situation", n_times:"Zeiten", n_rules:"Regeln für das Statuslicht", n_owner:"Erstellt von",
   n_stats:(r,a,b)=>`${r}-mal ausgelöst · Alice ${a}-mal und Bob ${b}-mal erklärt (letzte 90 Tage)`,
@@ -681,7 +683,9 @@ function notesHTML(){
     <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
     <div class="sec"><b>${tt.n_rules}</b>${rules}</div>`;
 }
+let notesInit = false;
 function renderNotes(){
+  if (!notesInit){ notesInit = true; if (!DATA.notes_unfolded) document.body.classList.add("notes-folded"); }
   const on = NOTES_FROM>=0 && idx>=NOTES_FROM && SCREENS[idx]!=="end";
   const hintEl = document.getElementById("notes-hint");
   const showHint = on && !DATA.notes_hint_done;
@@ -979,9 +983,9 @@ function dismissHint(){ if (DATA.notes_hint_done) return; DATA.notes_hint_done =
 document.getElementById("notes-hint").addEventListener("click", e=>{ if (e.target.id==="hint-ok") dismissHint(); });
 document.getElementById("notes").addEventListener("click", e=>{
   if (e.target.id==="notes-close") document.getElementById("notes").classList.remove("open");
-  if (e.target.id==="notes-fold"){ document.body.classList.add("notes-folded"); (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"hide", at_ms:Date.now()-enteredAt}); }
+  if (e.target.id==="notes-fold"){ document.body.classList.add("notes-folded"); DATA.notes_unfolded = false; (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"hide", at_ms:Date.now()-enteredAt}); }
 });
-document.getElementById("notes-show").addEventListener("click", ()=>{ document.body.classList.remove("notes-folded"); (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"show", at_ms:Date.now()-enteredAt}); DATA.notes_opens.push({screen:SCREENS[idx], via:"show", at_ms:Date.now()-enteredAt}); });
+document.getElementById("notes-show").addEventListener("click", ()=>{ document.body.classList.remove("notes-folded"); DATA.notes_unfolded = true; dismissHint(); (DATA.notes_folds ||= []).push({screen:SCREENS[idx], action:"show", at_ms:Date.now()-enteredAt}); DATA.notes_opens.push({screen:SCREENS[idx], via:"show", at_ms:Date.now()-enteredAt}); });
 
 /* ---------- saving ---------- */
 // Flat summary for the spreadsheet: A/B/C are mapped back to C0 (SmartEx baseline), C2 and C3 (GPT-OSS + P1).
@@ -1024,7 +1028,7 @@ function summary(){
     o[`${tc}_rate_min_reading_s`] = Math.round(minSec);
     if (spent && spent < minSec) tooFastRating = true;
     const vals = sides(tc).flatMap(sd=>T.en.lik_items.map(([k])=>q.likert[sd][k])).filter(v=>v);
-    const sl = vals.length>=5 && vals.every(v=>v===vals[0]);
+    const sl = vals.length>=4 && vals.every(v=>v===vals[0]);
     o[`${tc}_straightlining`] = sl; if (sl) straight = true;
   }
   o.flag_too_fast = (DATA.finished_at && o.total_time_min < SETTINGS.MIN_TOTAL_MINUTES) || tooFastRating;

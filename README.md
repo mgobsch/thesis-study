@@ -34,13 +34,13 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx
 4. **The smart devices:** click on 7 devices (door sensor, motion sensor, status light, forecast, clock, smoke/CO₂ detector, fan)
 5. **Door demo:** a slightly open door shows whether people are inside
-6. **The office rules:** all 6 rules that change the status light. From here on, the yellow **office note** is available (on laptops it can be hidden and shown again).
+6. **The office rules:** all 6 rules that change the status light. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it.
 7. **Alice and Bob:** the two personas and their technical level
 8. **Quick check:** 3 questions (answer order shuffled per participant)
 9. **Three situations (random order),** each with three steps:
    - **Story:** what the persona sees at that moment
-   - **Ask SmartEx:** first choose **which colour** you expected instead, then place the **two rules you expected most** (out of all 6) on places 1 and 2, and lock them in
-   - **Rate the explanations:** two or three explanations (A, B, C), 5 statements each, a preference and a comprehension question
+   - **Ask SmartEx:** first choose **which colour** you expected instead, then place the **two rules you expected most** (all rules except the one that is currently active) on places 1 and 2, and lock them in
+   - **Rate the explanations:** two or three explanations (A, B, C), two statements each (easy to understand, helpful), a preference and a comprehension question
 10. **Final questions:** attention check and optional feedback
 11. **End:** answers are sent to the Google Sheet
 
@@ -138,7 +138,7 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `TC1_C2_trial`, `TC1_C3_trial` | GPT-OSS trials used (C3 empty in variant "C2") |
 | `variant`, `model` | which variant was running, and the model (GPT-OSS P1) |
 | `TC1_preferred` | preferred explanation: C0, C2 or C3 |
-| `TC1_C0_clear` … `TC1_C3_trust` | Likert ratings 1–5, mapped to C0, C2 and C3 |
+| `TC1_C0_underst`, `TC1_C0_helpful` … `TC1_C3_helpful` | Likert ratings 1–5 (easy to understand, helpful), mapped to C0, C2 and C3 |
 | `TC1_mcq_correct` | comprehension question correct (TRUE/FALSE) |
 | `total_time_min` | total duration in minutes |
 
