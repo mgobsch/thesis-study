@@ -36,10 +36,10 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 5. **The office rules:** all 6 rules that change the status light, with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
 6. **Alice and Bob:** the two employees and their technical level. In each situation, one of them asks SmartEx something.
 7. **Quick check:** 3 questions (answer order shuffled per participant)
-8. **Three situations,** always in the same order by time of day: **TC3 (08:00) → TC1 (12:08) → TC2 (12:10)**, each with three steps:
+8. **Three situations (random order),** each with three steps:
    - **Story:** what Alice or Bob sees at that moment (third person)
    - **Ask SmartEx:** Alice/Bob asks SmartEx. The participant first chooses **which colour they think Alice/Bob expected** instead, then places the **two rules they think Alice/Bob expected most** (all rules except the one that is currently active) on places 1 and 2, and locks them in. Rules the person created carry a **"Created by Alice" / "Created by Bob"** tag as a hint.
-   - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"The wording of this explanation is easy for Alice to understand"*, *"After reading this explanation, Alice knows why the status light is orange"*), a length choice (*too short / about right / too long*), then **which explanation is best for Alice/Bob** and a comprehension question.
+   - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"This explanation is easy for Alice to understand"*, *"This explanation is helpful for Alice"*), then **which explanation is best for Alice/Bob** and a comprehension question.
 9. **Final questions:** attention check and optional feedback
 10. **End:** answers are sent to the Google Sheet
 
@@ -47,9 +47,9 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 
 | Situation | Persona | What happens | Status light |
 |---|---|---|---|
-| TC3 | Alice | 08:00, sunny. Alice is the first one in the office (so nobody is in the meeting room). The door is slightly open (shown in the picture, not in the story). | off |
 | TC1 | Alice | 12:08, rain. A meeting just ended, people are standing in the hallway. The door is closed (shown in the picture, not in the story). | orange |
 | TC2 | Bob | 12:10, rain, lunchtime. A meeting just ended, people are standing in front of the meeting room. The door is closed (shown in the picture, not in the story). | orange |
+| TC3 | Alice | 08:00, sunny. Alice is the first one in the office (so nobody is in the meeting room). The door is slightly open (shown in the picture, not in the story). | off |
 
 ### The explanations
 
@@ -125,7 +125,7 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `pid` | anonymous participant ID |
 | `ls_id`, `limesurvey_mode` | LimeSurvey response ID (empty in standalone mode) and whether LimeSurvey mode was on |
 | `finished` | TRUE = completed the whole study |
-| `order` | order of the situations (always "TC3 TC1 TC2") |
+| `order` | order of the situations, e.g. "TC2 TC1 TC3" |
 | `age`, `smarthome_familiarity`, `tech_background` | only in standalone mode (in LimeSurvey mode, this is in LimeSurvey) |
 | `quiz_correct` | correct answers in the quick check (0–3) |
 | `attention_passed` | attention check passed (TRUE/FALSE) |
@@ -137,8 +137,7 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `TC1_C2_trial`, `TC1_C3_trial` | GPT-OSS trials used (C3 empty in variant "C2") |
 | `variant`, `model` | which variant was running, and the model (GPT-OSS P1) |
 | `TC1_preferred` | explanation chosen as best for Alice/Bob: C0, C2 or C3 |
-| `TC1_C0_underst`, `TC1_C0_knowswhy` … `TC1_C3_knowswhy` | ratings 1–5 (wording easy to understand, knows why the light has this colour), mapped to C0, C2 and C3 |
-| `TC1_C0_length` … `TC1_C3_length` | length for Alice/Bob: `too_short`, `about_right`, `too_long` |
+| `TC1_C0_underst`, `TC1_C0_helpful` … `TC1_C3_helpful` | ratings 1–5 (easy to understand for Alice/Bob, helpful for Alice/Bob), mapped to C0, C2 and C3 |
 | `TC1_mcq_correct` | comprehension question correct (TRUE/FALSE) |
 | `total_time_min` | total duration in minutes |
 
@@ -224,7 +223,7 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 
 ## Randomisation
 
-The order of the situations is **fixed** (TC3 → TC1 → TC2, by time of day). Note for the thesis: situation and position cannot be separated (e.g. fatigue in TC2).
+The order of the three situations is **fully random** (all 6 orders possible).
 
 Per participant, and saved with the answers:
 

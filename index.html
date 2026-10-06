@@ -252,8 +252,7 @@ const STATS = {
       when = "Starts when", only = "Only if" (null = none), c = resulting light colour
    ===================================================================== */
 const EXPLANATION_TRIALS = { TC1:{C2:2, C3:1}, TC2:{C2:2, C3:1}, TC3:{C2:1, C3:3} };   // saved with every answer
-const LIK_KEYS = ["underst","knowswhy"];   // 1–5 statements (labels in T.*.lik_items)
-const LEN_VALUES = ["too_short","about_right","too_long"];   // length choice per explanation
+const LIK_KEYS = ["underst","helpful"];   // 1–5 statements (labels in T.*.lik_items)
 const RANK_PLACES = 2;   // how many rules participants rank (the rest stays "not placed")
 const LIGHT = { green:"var(--l-green)", orange:"var(--l-orange)", blue:"var(--l-blue)", off:"var(--l-off)" };
 const RULES = {
@@ -366,8 +365,8 @@ const T = {
    quiz:["Answer the 3 questions. You will see the right answer straight away."],
    story:["Read the situation carefully. Keep in mind who is in it."],
    rank:p=>["Look at the office picture.","Click the question button.",`Choose the colour you think ${p} expected instead, then place the two rules you think ${p} expected most.`,"Click “Lock in my order”."],
-   rate2:p=>["Read both explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree) and choose whether its length is right.",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
-   rate:p=>["Read all three explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree) and choose whether its length is right.",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
+   rate2:p=>["Read both explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
+   rate:p=>["Read all three explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
    final:["Answer the check question. The two feedback questions are optional."]},
   rate_note:who=>`Please rate each explanation with ${who} in mind. ${who==="Bob" ? "Bob is not technical and prefers short, everyday language." : "Alice knows a bit about technology."} The explanations were generated automatically. Some may be unclear or not fully correct.`,
   persona:{Alice:"Alice · knows a bit about technology", Bob:"Bob · not technical, prefers everyday language"},
@@ -422,8 +421,7 @@ const T = {
   rate_h:"Rate the explanations",
   rate_p:(n,p)=>n===3 ? `Here are three explanations from SmartEx for ${p}'s question. Please read all three carefully and rate each one.` : `Here are two explanations from SmartEx for ${p}'s question. Please read both carefully and rate each one.`,
   your_q:p=>`${p}'s question`, expl:"Explanation", pref:p=>`Which explanation is best for ${p}?`,
-  lik_items:(p,c)=>[["underst",`The wording of this explanation is easy for ${p} to understand.`],["knowswhy",`After reading this explanation, ${p} knows why the status light is ${c}.`]],
-  len_q:p=>`For ${p}, this explanation is …`, len_o:["too short","about right","too long"],
+  lik_items:p=>[["underst",`This explanation is easy for ${p} to understand.`],["helpful",`This explanation is helpful for ${p}.`]],
   lik_scale:["1 = strongly disagree","5 = strongly agree"],
   mcq_h:"Your understanding",
   final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)",
@@ -449,8 +447,8 @@ const T = {
    quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
    story:["Lies die Situation aufmerksam. Achte darauf, um wen es geht."],
    rank:p=>["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.",`Wähle die Farbe, die ${p} deiner Meinung nach stattdessen erwartet hat, und lege dann die zwei Regeln ab, die ${p} deiner Meinung nach am meisten erwartet hat.`,"Klicke auf „Reihenfolge festlegen“."],
-   rate2:p=>["Lies beide Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu) und wähle, ob die Länge passt.",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
-   rate:p=>["Lies alle drei Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu) und wähle, ob die Länge passt.",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
+   rate2:p=>["Lies beide Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
+   rate:p=>["Lies alle drei Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
    final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
   rate_note:who=>`Bitte bewerte jede Erklärung mit Blick auf ${who}. ${who==="Bob" ? "Bob ist nicht technisch und mag kurze Erklärungen in einfacher Alltagssprache." : "Alice kennt sich ein bisschen mit Technik aus."} Die Erklärungen wurden automatisch erstellt. Manche sind vielleicht unklar oder nicht ganz richtig.`,
   persona:{Alice:"Alice · kennt sich ein bisschen mit Technik aus", Bob:"Bob · nicht technisch, mag einfache Alltagssprache"},
@@ -505,8 +503,7 @@ const T = {
   rate_h:"Bewerte die Erklärungen",
   rate_p:(n,p)=>n===3 ? `Hier sind drei Erklärungen von SmartEx zur Frage von ${p}. Bitte lies alle drei aufmerksam und bewerte jede einzeln.` : `Hier sind zwei Erklärungen von SmartEx zur Frage von ${p}. Bitte lies beide aufmerksam und bewerte jede einzeln.`,
   your_q:p=>`Frage von ${p}`, expl:"Erklärung", pref:p=>`Welche Erklärung ist für ${p} am besten?`,
-  lik_items:(p,c)=>[["underst",`Die Formulierung dieser Erklärung ist für ${p} leicht zu verstehen.`],["knowswhy",`Nach dieser Erklärung weiß ${p}, warum das Statuslicht ${c} ist.`]],
-  len_q:p=>`Für ${p} ist diese Erklärung …`, len_o:["zu kurz","genau richtig","zu lang"],
+  lik_items:p=>[["underst",`Diese Erklärung ist für ${p} leicht zu verstehen.`],["helpful",`Diese Erklärung ist für ${p} hilfreich.`]],
   lik_scale:["1 = stimme gar nicht zu","5 = stimme voll zu"],
   mcq_h:"Dein Verständnis",
   final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)",
@@ -539,7 +536,7 @@ const contextMode = SETTINGS.CONTEXT_MODE==="split" ? (Math.random()<.5?"all":"b
 let DATA = {
   pid, preview: PREVIEW, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
   context_mode:contextMode, context_setting:SETTINGS.CONTEXT_MODE,
-  order:["TC3","TC1","TC2"], ab:{},   // fixed order by time of day: 08:00 -> 12:08 -> 12:10
+  order:shuffle(["TC1","TC2","TC3"]), ab:{},   // random order of the situations
   consent:false, about:{}, tutorial:{seen:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[],
   webdriver: !!navigator.webdriver, pointer_moves:0, honeypot:"",
   ls_id: LS_ID, limesurvey_mode: !!SETTINGS.LIMESURVEY_MODE
@@ -798,15 +795,12 @@ function rankScreen(tc){
 const sides = tc => DATA.ab[tc].C ? ["A","B","C"] : ["A","B"];   // explanation labels shown for this situation
 function rateScreen(tc){
   const s = SCENARIOS[tc], tt = t(), ab = DATA.ab[tc];
-  const d = DATA.rate[tc] || (DATA.rate[tc] = {pref:null, likert:{A:{},B:{},C:{}}, len:{}, mcq:null});
-  d.len ||= {};
-  const likert = side => tt.lik_items(s.person, tt.st[s.light]).map(([key,label])=>`<div class="lik"><div class="q">${esc(label)}</div>
+  const d = DATA.rate[tc] || (DATA.rate[tc] = {pref:null, likert:{A:{},B:{},C:{}}, mcq:null});
+  const likert = side => tt.lik_items(s.person).map(([key,label])=>`<div class="lik"><div class="q">${esc(label)}</div>
     <div class="pills" role="radiogroup" aria-label="${esc(label)}">${[1,2,3,4,5].map(v=>`<label><input type="radio" name="lk_${side}_${key}" value="${v}" ${d.likert[side][key]===v?"checked":""}><span>${v}</span></label>`).join("")}</div>
     <div class="scale"><span>${tt.lik_scale[0]}</span><span>${tt.lik_scale[1]}</span></div></div>`).join("");
-  const lengthQ = side => `<div class="lik"><div class="q">${esc(tt.len_q(s.person))}</div>
-    <div class="pills" role="radiogroup" aria-label="${esc(tt.len_q(s.person))}">${LEN_VALUES.map((v,i)=>`<label><input type="radio" name="len_${side}" value="${v}" ${d.len[side]===v?"checked":""}><span>${esc(tt.len_o[i])}</span></label>`).join("")}</div></div>`;
   const answer = side => `<div class="card answer"><h3 style="margin-top:0">${tt.expl} ${side}</h3>
-    <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}${lengthQ(side)}</div>`;
+    <blockquote>${esc(s.explanations[ab[side]][lang])}</blockquote>${likert(side)}</div>`;
   return `<p class="sitbadge">${tt.sit(sitNo(tc))}</p><h2>${tt.rate_h}</h2>${personaTag(s.person)}${taskBox(sides(tc).length===3?"rate":"rate2", null, tt.rate_note(s.person), s.person)}<p>${tt.rate_p(sides(tc).length, s.person)}</p>
    <div class="card"><b>${esc(tt.your_q(s.person))}:</b> ${esc(s.ask[lang])}${statusChips(s)}</div>
    <div class="stack" style="margin-top:14px">${sides(tc).map(answer).join("")}</div>
@@ -814,7 +808,7 @@ function rateScreen(tc){
    <div class="card" style="margin-top:14px"><h3 style="margin-top:0">${tt.mcq_h}</h3><fieldset style="margin:0"><legend>${esc(s.mcq.q[lang])}</legend>${radios("mcq",DATA.mcq_order[tc].map(i=>s.mcq.opts[i][lang]),d.mcq,DATA.mcq_order[tc])}</fieldset></div>
    ${nav(true)}`;
 }
-const rateComplete = tc => { const d = DATA.rate[tc]; return !!(d && d.pref && d.mcq!==null && sides(tc).every(sd=>LIK_KEYS.every(k=>d.likert[sd][k]) && (d.len||{})[sd])); };
+const rateComplete = tc => { const d = DATA.rate[tc]; return !!(d && d.pref && d.mcq!==null && sides(tc).every(sd=>LIK_KEYS.every(k=>d.likert[sd][k]))); };
 
 /* ---------- ranking interactions ---------- */
 const ui = {sel:null, drag:null};
@@ -956,7 +950,6 @@ app.addEventListener("change", e=>{
   if (kind==="rate"){ const d = DATA.rate[tc];
     if (el.name==="pref") d.pref = el.value;
     else if (el.name==="mcq"){ d.mcq = Number(el.value); d.mcq_correct = d.mcq===SCENARIOS[tc].mcq.correct; }
-    else if (el.name.startsWith("len_")){ (d.len ||= {})[el.name.slice(4)] = el.value; }
     else if (el.name.startsWith("lk_")){ const [,side,key] = el.name.split("_"); d.likert[side][key] = Number(el.value); }
     document.getElementById("hint").textContent = ""; return; }
   if (sc==="final" && el.name==="attn"){ DATA.final.attention = el.value; DATA.final.attention_passed = el.value==="blue"; }
@@ -998,7 +991,6 @@ function summary(){
     o[`${tc}_C2_trial`] = EXPLANATION_TRIALS[tc].C2; o[`${tc}_C3_trial`] = ab.C ? EXPLANATION_TRIALS[tc].C3 : "";
     o[`${tc}_preferred`] = q && q.pref ? ab[q.pref] : "";
     for (const k of LIK_KEYS) for (const side of sides(tc)) o[`${tc}_${ab[side]}_${k}`] = q ? (q.likert[side][k]||"") : "";
-    for (const side of sides(tc)) o[`${tc}_${ab[side]}_length`] = q && q.len ? (q.len[side]||"") : "";
     o[`${tc}_mcq_correct`] = q && q.mcq!==null ? q.mcq_correct : "";
     o[`${tc}_time_rank_s`] = Math.round((DATA.timing["rank:"+tc]||0)/1000);
     o[`${tc}_time_rate_s`] = Math.round((DATA.timing["rate:"+tc]||0)/1000);
