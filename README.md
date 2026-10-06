@@ -2,7 +2,7 @@
 
 This repository contains the online user study for my bachelor's thesis at the University of Cologne. The thesis looks at **LLM-generated contrastive explanations** for a smart office: explanations that answer questions like *"Why is the status light orange and not green?"*
 
-The whole study is **one web page** (`index.html`). Participants take the role of Alice or Bob and go through three situations in a small smart office.
+The whole study is **one web page** (`index.html`). Participants do not play a role: they follow Alice and Bob, two employees, through three situations in a small smart office (stories in third person) and judge SmartEx's explanations for them.
 
 **Study link:** https://mgobsch.github.io/thesis-study/
 **Preview link (nothing is saved):** https://mgobsch.github.io/thesis-study/?preview=1
@@ -33,16 +33,15 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 2. **About you:** age, familiarity with smart devices, technical background *(standalone mode only)*
 3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx
 4. **The smart devices:** click on 7 devices (door sensor, motion sensor, status light, forecast, clock, smoke/CO₂ detector, fan)
-5. **Door demo:** a slightly open door shows whether people are inside
-6. **The office rules:** all 6 rules that change the status light. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it.
-7. **Alice and Bob:** the two personas and their technical level
-8. **Quick check:** 3 questions (answer order shuffled per participant)
-9. **Three situations (random order),** each with three steps:
-   - **Story:** what the persona sees at that moment
-   - **Ask SmartEx:** first choose **which colour** you expected instead, then place the **two rules you expected most** (all rules except the one that is currently active) on places 1 and 2, and lock them in
-   - **Rate the explanations:** two or three explanations (A, B, C), two statements each (easy to understand, helpful), a preference and a comprehension question
-10. **Final questions:** attention check and optional feedback
-11. **End:** answers are sent to the Google Sheet
+5. **The office rules:** all 6 rules that change the status light, with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
+6. **Alice and Bob:** the two employees and their technical level. In each situation, one of them asks SmartEx something.
+7. **Quick check:** 3 questions (answer order shuffled per participant)
+8. **Three situations,** Alice's two situations (TC1, TC3) always back to back (see "Randomisation"), each with three steps:
+   - **Story:** what Alice or Bob sees at that moment (third person)
+   - **Ask SmartEx:** Alice/Bob asks SmartEx. The participant first chooses **which colour they think Alice/Bob expected** instead, then places the **two rules they think Alice/Bob expected most** (all rules except the one that is currently active) on places 1 and 2, and locks them in. Rules the person created carry a **"Created by Alice" / "Created by Bob"** tag as a hint.
+   - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"The wording of this explanation is easy for Alice to understand"*, *"After reading this explanation, Alice knows why the status light is orange"*), a length choice (*too short / about right / too long*), then **which explanation is best for Alice/Bob** and a comprehension question.
+9. **Final questions:** attention check and optional feedback
+10. **End:** answers are sent to the Google Sheet
 
 ### The three situations
 
@@ -50,7 +49,7 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 |---|---|---|---|
 | TC1 | Alice | 12:08, rain. A meeting just ended, people are standing in the hallway, the door is closed. | orange |
 | TC2 | Bob | 12:10, rain, lunchtime. A meeting just ended, people are standing in front of the meeting room, the door is closed. | orange |
-| TC3 | Alice | 08:00, sunny. Alice arrives in the morning, the door is slightly open, the room is empty. | off |
+| TC3 | Alice | 08:00, sunny. Alice is the first one in the office (so nobody is in the meeting room), the door is slightly open. | off |
 
 ### The explanations
 
@@ -137,8 +136,9 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `TC1_A_is`, `TC1_B_is`, `TC1_C_is` | which explanation was shown as A, B and C |
 | `TC1_C2_trial`, `TC1_C3_trial` | GPT-OSS trials used (C3 empty in variant "C2") |
 | `variant`, `model` | which variant was running, and the model (GPT-OSS P1) |
-| `TC1_preferred` | preferred explanation: C0, C2 or C3 |
-| `TC1_C0_underst`, `TC1_C0_helpful` … `TC1_C3_helpful` | Likert ratings 1–5 (easy to understand, helpful), mapped to C0, C2 and C3 |
+| `TC1_preferred` | explanation chosen as best for Alice/Bob: C0, C2 or C3 |
+| `TC1_C0_underst`, `TC1_C0_knowswhy` … `TC1_C3_knowswhy` | ratings 1–5 (wording easy to understand, knows why the light has this colour), mapped to C0, C2 and C3 |
+| `TC1_C0_length` … `TC1_C3_length` | length for Alice/Bob: `too_short`, `about_right`, `too_long` |
 | `TC1_mcq_correct` | comprehension question correct (TRUE/FALSE) |
 | `total_time_min` | total duration in minutes |
 
@@ -156,7 +156,7 @@ The page measures the time on each screen and adds warning flags to every row. *
 |---|---|
 | `time_<screen>_s` | seconds on each screen, e.g. `time_devices_s`, `time_TC1_rank_s`, `time_TC1_rate_s` |
 | `TC1_rate_min_reading_s` | minimum time needed to read the explanations at `READING_WPM` |
-| `TC1_straightlining` | TRUE = all ratings in this situation have the same value |
+| `TC1_straightlining` | TRUE = all 1–5 ratings in this situation have the same value (the length choice is not included) |
 | `flag_too_fast` | whole study faster than `MIN_TOTAL_MINUTES`, or a rating page faster than its reading time |
 | `flag_straightlining` | straightlining in at least one situation |
 | `flag_no_pointer` | no mouse, touch or scroll activity at all |
@@ -226,7 +226,7 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 
 Per participant, and saved with the answers:
 
-- the order of the three situations
+- the order of the three situations: Alice's situations (TC1, TC3) always come right after each other. A coin flip decides whether the Alice block or Bob (TC2) comes first, and TC1/TC3 are shuffled inside the Alice block. Possible orders: TC1 TC3 TC2, TC3 TC1 TC2, TC2 TC1 TC3, TC2 TC3 TC1
 - which explanation is shown as A, B and C
 - the starting order of the rule tiles
 - the answer order in the quick check and in the comprehension questions
