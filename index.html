@@ -284,8 +284,8 @@ const RULES = {
 const SCENARIOS = {
   TC1: {
     person:"Alice", colleague:true, group:true, time:"12:08", weather:"rain", door:"closed", full:true, light:"orange",
-    story:{en:"It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. Alice sees a group of colleagues coming out of the room and standing together in the hallway. The meeting-room door is closed. Alice looks at the status light above the door – it is not what she expected.",
-           de:"Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Alice sieht eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Die Tür des Besprechungsraums ist zu. Alice schaut auf das Statuslicht über der Tür – es ist nicht so, wie sie es erwartet hat."},
+    story:{en:"It is 12:08, and it is raining outside. A meeting has just ended in the meeting room. Alice sees a group of colleagues coming out of the room and standing together in the hallway. Alice looks at the status light above the door – it is not what she expected.",
+           de:"Es ist 12:08 Uhr und draußen regnet es. Im Besprechungsraum ist gerade ein Meeting zu Ende gegangen. Alice sieht eine Gruppe von Kolleginnen und Kollegen aus dem Raum kommen und im Flur zusammenstehen. Alice schaut auf das Statuslicht über der Tür – es ist nicht so, wie sie es erwartet hat."},
     ask:{en:"Why is the status light orange?", de:"Warum ist das Statuslicht orange?"},
     foils:["notoccupied","rain","sunny","danger","closing"],   // "occupied" is the active rule, so it is not a candidate
     explanations:{
@@ -299,7 +299,7 @@ const SCENARIOS = {
           de:"Alice, die Regel „Besprechungsraum belegt“ wurde ausgelöst, da bei geschlossener Tür Bewegung erkannt wurde; daher hat das System die Statusleuchte auf orange gesetzt, um anzuzeigen, dass der Raum belegt ist. Die Regel „Besprechungsraum nicht belegt“ hätte die Leuchte auf grün geschaltet, aber ihre Bedingung „keine Bewegung“ war nicht erfüllt."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
-      {en:"Someone is in the meeting room, so it counts as occupied.", de:"Es ist jemand im Besprechungsraum, deshalb gilt er als belegt."},
+      {en:"The meeting room is occupied.", de:"Der Besprechungsraum ist belegt."},
       {en:"It is raining at lunchtime.", de:"Es regnet zur Mittagszeit."},
       {en:"The sun is shining at lunchtime.", de:"Zur Mittagszeit scheint die Sonne."},
       {en:"Smoke was detected.", de:"Es wurde Rauch erkannt."}]}
@@ -321,15 +321,15 @@ const SCENARIOS = {
           de:"Das Licht ist orange, da im Besprechungsraum Bewegung erkannt wurde; daher hat das System den Raum als belegt eingestuft und die Regel angewendet, die die Statusleuchte auf orange setzt. Hätte es keine Bewegung gegeben, hätte die Regel „Besprechungsraum nicht belegt“ das Licht stattdessen grün gemacht."}
     },
     mcq:{ q:{en:"According to the explanations, why is the status light orange?", de:"Warum ist das Statuslicht laut den Erklärungen orange?"}, correct:0, opts:[
-      {en:"Someone is in the meeting room, so it counts as occupied.", de:"Es ist jemand im Besprechungsraum, deshalb gilt er als belegt."},
+      {en:"The meeting room is occupied.", de:"Der Besprechungsraum ist belegt."},
       {en:"It is raining at lunchtime.", de:"Es regnet zur Mittagszeit."},
       {en:"The sun is shining at lunchtime.", de:"Zur Mittagszeit scheint die Sonne."},
       {en:"Smoke was detected.", de:"Es wurde Rauch erkannt."}]}
   },
   TC3: {
     person:"Alice", colleague:false, time:"08:00", weather:"sun", door:"crack", full:false, light:"off",
-    story:{en:"It is 08:00 in the morning and Alice is the first one to arrive at the office – nobody else is here yet. On the way to her desk she walks past the meeting room. The door is slightly open. She looks at the status light above the door – it is not what she expected.",
-           de:"Es ist 8:00 Uhr morgens und Alice ist als Erste im Büro angekommen – sonst ist noch niemand da. Auf dem Weg zu ihrem Schreibtisch geht sie am Besprechungsraum vorbei. Die Tür ist einen Spalt offen. Sie schaut auf das Statuslicht über der Tür – es ist nicht so, wie sie es erwartet hat."},
+    story:{en:"It is 08:00 in the morning and Alice is the first one to arrive at the office – nobody else is here yet. On the way to her desk she walks past the meeting room. She looks at the status light above the door – it is not what she expected.",
+           de:"Es ist 8:00 Uhr morgens und Alice ist als Erste im Büro angekommen – sonst ist noch niemand da. Auf dem Weg zu ihrem Schreibtisch geht sie am Besprechungsraum vorbei. Sie schaut auf das Statuslicht über der Tür – es ist nicht so, wie sie es erwartet hat."},
     ask:{en:"Why is the status light off?", de:"Warum ist das Statuslicht aus?"},
     foils:["notoccupied","occupied","rain","sunny","danger","closing"],
     explanations:{
@@ -406,7 +406,7 @@ const T = {
   quiz:[
    {q:"When is lunchtime in this office?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
    {q:"What does the motion sensor detect?", o:["If the door is open","If someone is moving inside the meeting room","If someone is moving outside the meeting room"], c:1},
-   {q:"What can you do if something in the office is unclear to you?", o:["Change the rules","Ask SmartEx for an explanation","Restart the system"], c:1}],
+   {q:"What can Alice or Bob do if something in the office is unclear to them?", o:["Change the rules","Ask SmartEx for an explanation","Restart the system"], c:1}],
   right:"Correct!", wrong:"Not quite. The right answer is: ",
   sit:(n)=>`Situation ${n} / 3`, story_h:"What is happening", 
   ask_h:"Ask SmartEx", 
@@ -489,7 +489,7 @@ const T = {
   quiz:[
    {q:"Wann ist in diesem Büro Mittagszeit?", o:["08:00–10:00","11:00–13:00","18:00–20:00"], c:1},
    {q:"Was erkennt der Bewegungsmelder?", o:["Ob die Tür offen ist","Ob sich jemand im Besprechungsraum bewegt","Ob sich jemand außerhalb des Besprechungsraums bewegt"], c:1},
-   {q:"Was kannst du tun, wenn dir im Büro etwas unklar ist?", o:["Die Regeln ändern","SmartEx um eine Erklärung bitten","Das System neu starten"], c:1}],
+   {q:"Was können Alice oder Bob tun, wenn ihnen im Büro etwas unklar ist?", o:["Die Regeln ändern","SmartEx um eine Erklärung bitten","Das System neu starten"], c:1}],
   right:"Richtig!", wrong:"Nicht ganz. Richtig ist: ",
   sit:(n)=>`Situation ${n} / 3`, story_h:"Was passiert gerade",
   ask_h:"Frag SmartEx",
@@ -539,7 +539,7 @@ const contextMode = SETTINGS.CONTEXT_MODE==="split" ? (Math.random()<.5?"all":"b
 let DATA = {
   pid, preview: PREVIEW, started:new Date().toISOString(), lang_start:lang, test_mode:SETTINGS.TEST_MODE,
   context_mode:contextMode, context_setting:SETTINGS.CONTEXT_MODE,
-  order:(()=>{ const alice = shuffle(["TC1","TC3"]); return Math.random()<.5 ? [...alice,"TC2"] : ["TC2",...alice]; })(), ab:{},   // Alice block (TC1+TC3, shuffled) before or after Bob (TC2)
+  order:["TC3","TC1","TC2"], ab:{},   // fixed order by time of day: 08:00 -> 12:08 -> 12:10
   consent:false, about:{}, tutorial:{seen:[]}, quiz:{}, rank:{}, rate:{}, final:{}, timing:{}, notes_opens:[],
   webdriver: !!navigator.webdriver, pointer_moves:0, honeypot:"",
   ls_id: LS_ID, limesurvey_mode: !!SETTINGS.LIMESURVEY_MODE
