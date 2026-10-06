@@ -31,7 +31,7 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 
 1. **Welcome and consent** *(standalone mode only)*
 2. **About you:** age, familiarity with smart devices, technical background *(standalone mode only)*
-3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx
+3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx. A yellow note above the clock (and the "Times" section of the office note) shows office hours 08:00–18:00, lunchtime 11:00–13:00 and closing time 18:00–23:00
 4. **The smart devices:** click on 7 devices (door sensor, motion sensor, status light, forecast, clock, smoke/CO₂ detector, fan)
 5. **The office rules:** all 6 rules that change the status light, with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
 6. **Alice and Bob:** the two employees and their technical level. In each situation, one of them asks SmartEx something.

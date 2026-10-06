@@ -395,7 +395,7 @@ const T = {
    clock:["Clock","The office knows the time. Some rules only apply at certain times. The note above the clock shows the most important times."],
    smoke:["Smoke and CO₂ detector","This detector senses smoke or too much carbon dioxide (CO₂)."],
    fan:["Ventilation fan","The ventilation fan used in the meeting room."]},
-  labels:{room:"Meeting room", forecast:"Forecast", motion:"motion sensor", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00–23:00"},
+  labels:{room:"Meeting room", forecast:"Forecast", motion:"motion sensor", hours:"Office hours: 08:00–18:00", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00–23:00"},
   rules_h:"The office rules", rules_p:"The status light follows these rules. Read each rule from top to bottom. Several rules can be true at the same time.",
   rules_unclear:"Some rules may seem confusing or overlap. That is normal – just do your best.",
   k_when:"Starts when", k_only:"Only if", k_then:"Result", then_tpl:(c,x)=>`The status light turns ${c}${x}.`, then_off:x=>`The status light turns off${x}.`,
@@ -478,7 +478,7 @@ const T = {
    clock:["Uhr","Das Büro kennt die Uhrzeit. Manche Regeln gelten nur zu bestimmten Zeiten. Die Notiz über der Uhr zeigt die wichtigsten Zeiten."],
    smoke:["Rauch- und CO₂-Melder","Dieser Melder erkennt Rauch oder zu viel Kohlendioxid (CO₂)."],
    fan:["Lüfter","Der Lüfter im Besprechungsraum."]},
-  labels:{room:"Besprechungsraum", forecast:"Vorhersage", motion:"Bewegungsmelder", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00–23:00"},
+  labels:{room:"Besprechungsraum", forecast:"Vorhersage", motion:"Bewegungsmelder", hours:"Bürozeiten: 08:00–18:00", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00–23:00"},
   rules_h:"Die Regeln im Büro", rules_p:"Das Statuslicht folgt diesen Regeln. Lies jede Regel von oben nach unten. Mehrere Regeln können gleichzeitig zutreffen.",
   rules_unclear:"Manche Regeln wirken vielleicht verwirrend oder überschneiden sich. Das ist normal – mach es einfach so gut du kannst.",
   k_when:"Startet, wenn", k_only:"Nur wenn", k_then:"Ergebnis", then_tpl:(c,x)=>`Das Statuslicht wird ${c}${x}.`, then_off:x=>`Das Statuslicht geht aus${x}.`,
@@ -646,9 +646,10 @@ function officeSVG(s, tutorial=false){
            <g stroke="#7FB0E0" stroke-width="3" stroke-linecap="round">${[84,98,112,126].map((x,i)=>`<line x1="${x}" y1="${118+i%2*3}" x2="${x-5}" y2="${130+i%2*3}"/>`).join("")}</g>`
         : `<g stroke="#F2C94C" stroke-width="3" stroke-linecap="round">${[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return `<line x1="${110+19*Math.cos(r)}" y1="${106+19*Math.sin(r)}" x2="${110+25*Math.cos(r)}" y2="${106+25*Math.sin(r)}"/>`;}).join("")}</g><circle cx="110" cy="106" r="14" fill="#F2C94C"/>`}
       <text x="110" y="155" text-anchor="middle" font-size="15" font-weight="700" style="fill:#FFFFFF">${t().st[s.weather]}</text>`)}
-    <rect x="218" y="26" width="144" height="42" rx="4" fill="var(--note)" stroke="var(--note-line)"/>
-    <text x="290" y="43" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.lunch}</text>
-    <text x="290" y="60" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.closing}</text>
+    <rect x="218" y="12" width="144" height="58" rx="4" fill="var(--note)" stroke="var(--note-line)"/>
+    <text x="290" y="29" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.hours}</text>
+    <text x="290" y="46" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.lunch}</text>
+    <text x="290" y="63" text-anchor="middle" font-size="12" style="fill:var(--note-ink)">${L.closing}</text>
     ${hot("clock",290,100,50,`<rect x="244" y="76" width="92" height="48" rx="8" fill="var(--screen)"/>
       <text x="290" y="110" text-anchor="middle" font-size="26" font-weight="700" style="fill:#7FE0A8;font-variant-numeric:tabular-nums;letter-spacing:1px">${s.time}</text>`)}
     ${hot("smoke",420,26,22,`<rect x="416" y="8" width="8" height="8" fill="var(--ink)"/><path d="M400 16 h40 v8 a20 9 0 0 1 -40 0z" fill="var(--panel)" stroke="var(--ink)" stroke-width="2"/>`)}
@@ -675,7 +676,7 @@ function notesHTML(){
     ${contextMode==="all"?`<div class="own">${tt.n_stats(STATS[id].ran,STATS[id].explained.Alice,STATS[id].explained.Bob)}</div>`:""}</div>`).join("");
   return `<div class="pin" aria-hidden="true"></div><div class="notes-head"><h3>${tt.notes_title}</h3><button type="button" class="btn ghost small notes-close" id="notes-close">${tt.close}</button><button type="button" class="btn ghost small notes-fold" id="notes-fold">${tt.hide}</button></div>
     ${tc?`<div class="sec"><b>${tt.n_story}</b><p style="margin:.3em 0 0"><i>${esc(tt.persona[SCENARIOS[tc].person])}</i></p><p style="margin:.3em 0 0">${esc(SCENARIOS[tc].story[lang])}</p></div>`:""}
-    <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
+    <div class="sec"><b>${tt.n_times}</b><div>${tt.labels.hours}<br>${tt.labels.lunch}<br>${tt.labels.closing}</div></div>
     <div class="sec"><b>${tt.n_rules}</b><p class="nunclear">${esc(tt.rules_unclear)}</p>${rules}</div>`;
 }
 let notesInit = false;
