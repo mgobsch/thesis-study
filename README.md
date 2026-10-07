@@ -116,6 +116,26 @@ Participant's browser  ──►  Google Apps Script (web app)  ──►  Googl
 
 **After changing `Code.gs`:** Save → Deploy → **Manage deployments** → pencil icon → Version **"New version"** → Deploy. (Not "New deployment", which creates a new URL.)
 
+### Bot protection and emergency stop
+
+`Code.gs` protects the sheet against fake submissions sent directly to the web app:
+
+- **Basic check:** submissions without a valid participant ID (`pid`), without the expected data, or larger than 300,000 characters are rejected.
+- **Automatic stop:** if more than **30 new participants** arrive within one hour, the script stops accepting answers and sends an email to the Google account that owns the script (or to `ALERT_EMAIL`, if set).
+- **By hand:** in Apps Script, run `pauseStudy` to stop accepting answers immediately, and `resumeStudy` to continue (this also resets the hourly counter). The web-app URL stays the same.
+- While paused, participants still see the normal end screen, but their answers are not saved.
+- **Full stop:** Deploy → Manage deployments → **Archive**. To resume, a new deployment (and a new `SAVE_URL` in `index.html`) is needed.
+- **New participants in LimeSurvey:** deactivate the survey or set an end date.
+
+### Hourly backup
+
+`Code.gs` also makes an hourly copy of the whole sheet into the Google Drive folder **"SmartEx study backups"**. Backups older than 7 days are moved to the Drive trash.
+
+- **Switch on (once):** in Apps Script, choose `startHourlyBackup` in the function menu → **Run** → allow access to Google Drive. It makes the first backup right away.
+- **Switch off** (after data collection): run `stopHourlyBackup`.
+- **Restore:** open the backup with the right time in the Drive folder and copy the rows you need. Alternatively, the sheet's own **File → Version history** also works.
+- The backup does not change the web app, so **no new deployment** is needed for it.
+
 To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.xlsx)**.
 
 ### Important columns (tab "Answers")
