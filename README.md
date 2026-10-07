@@ -27,20 +27,20 @@ In LimeSurvey mode, the page only starts with a code. Without one, it shows "Ple
 
 ## What participants do
 
-About 15–20 minutes, in English or German (switch at the top right). Every screen has a "What to do" box.
+About 15–20 minutes, in English or German (switch at the top right). Every screen has a "What to do" box. On the "Ask SmartEx" page it shows the steps bit by bit (before asking, after asking, after locking in). SmartEx is always described in the third person.
 
 1. **Welcome and consent** *(standalone mode only)*
 2. **About you:** age, familiarity with smart devices, technical background *(standalone mode only)*
 3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx. A yellow note above the clock (and the "Times" section of the office note) shows office hours 08:00–18:00, lunchtime 11:00–13:00 and closing time 18:00–23:00
 4. **The smart devices:** click on 7 devices (door sensor, motion sensor, status light, forecast, clock, smoke/CO₂ detector, fan)
-5. **The office rules:** all 6 rules that change the status light, with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
+5. **The office rules:** all 6 rules that change the status light, each with its owner ("Created by: Alice/Bob"), with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
 6. **Alice and Bob:** the two employees and their technical level. In each situation, one of them asks SmartEx something.
 7. **Quick check:** 3 questions (answer order shuffled per participant)
 8. **Three situations (random order),** each with three steps:
    - **Story:** what Alice or Bob sees at that moment (third person)
    - **Ask SmartEx:** Alice/Bob asks SmartEx. The participant first chooses **which colour they think Alice/Bob expected** instead, then places the **two rules they think Alice/Bob expected most** (all rules except the one that is currently active) on places 1 and 2, and locks them in. Rules the person created carry a **"Created by Alice" / "Created by Bob"** tag as a hint.
    - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"This explanation is easy for Alice to understand"*, *"This explanation is helpful for Alice"*), then **which explanation is best for Alice/Bob** and a comprehension question.
-9. **Final questions:** attention check and optional feedback
+9. **Final questions:** attention check and three optional feedback boxes (anything unclear, what would make the explanations better, anything else)
 10. **End:** answers are sent to the Google Sheet
 
 ### The three situations
@@ -128,6 +128,7 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `order` | order of the situations, e.g. "TC2 TC1 TC3" |
 | `age`, `smarthome_familiarity`, `tech_background` | only in standalone mode (in LimeSurvey mode, this is in LimeSurvey) |
 | `quiz_correct` | correct answers in the quick check (0–3) |
+| `feedback_unclear`, `feedback_improve`, `feedback_other` | the three optional feedback boxes |
 | `attention_passed` | attention check passed (TRUE/FALSE) |
 | `TC1_expected_colour` | colour the participant expected instead (green, orange, blue, off) |
 | `TC1_rank_locked` | the two rules placed, e.g. "notoccupied > rain" |

@@ -87,6 +87,7 @@ legend{font-weight:700;margin-bottom:8px;padding:0}
 .rrow{display:flex;align-items:center;gap:6px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
 .rule{border-left:6px solid var(--c)}
+.rule .own{font-size:14px;margin-top:8px}
 .person{display:flex;gap:14px;align-items:flex-start}
 .person svg{width:72px;height:72px;flex:none}
 .story{font-size:1.1rem}
@@ -230,8 +231,8 @@ const SETTINGS = {
   //   only starts when a code is present. false = the page runs on its own (consent + "About you" included).
   // Preview: click through freely, nothing is saved, no answers required. Also via the link ?preview=1
   PREVIEW_MODE: false,
-  LIMESURVEY_MODE: true,
-  LIMESURVEY_URL: "https://survey.uni-koeln.de/index.php/326863?",
+  LIMESURVEY_MODE: false,
+  LIMESURVEY_URL: "https://survey.uni-koeln.de/index.php/326863?lang=de",
   // Quality / bot checks (only mark answers in the sheet, nobody is excluded automatically)
   MIN_TOTAL_MINUTES: 5,     // faster than this for the whole study -> flag_too_fast
   READING_WPM: 300,         // a rating page faster than reading all its explanations at this speed -> flag_too_fast
@@ -364,10 +365,12 @@ const T = {
    people:["Read who Alice and Bob are. You will judge explanations for them later."],
    quiz:["Answer the 3 questions. You will see the right answer straight away."],
    story:["Read the situation carefully. Keep in mind who is in it."],
-   rank:p=>["Look at the office picture.","Click the question button.",`Choose the colour you think ${p} expected instead, then place the two rules you think ${p} expected most.`,"Click “Lock in my order”."],
+   rank:["Look at the office picture.","Click the question button."],
+   rank_asked:p=>[`Choose the colour you think ${p} expected instead.`,`Place the two rules you think ${p} expected most on places 1 and 2.`,"Click “Lock in my order”."],
+   rank_locked:["Click “Continue” to see SmartEx's explanations."],
    rate2:p=>["Read both explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
    rate:p=>["Read all three explanations.","Rate each one on the two statements (1 = strongly disagree, 5 = strongly agree).",`Choose the one that is best for ${p}.`,"Answer the question at the bottom."],
-   final:["Answer the check question. The two feedback questions are optional."]},
+   final:["Answer the check question. The feedback questions are optional."]},
   rate_note:who=>`Please rate each explanation with ${who} in mind. ${who==="Bob" ? "Bob is not technical and prefers short, everyday language." : "Alice knows a bit about technology."} The explanations were generated automatically. Some may be unclear or not fully correct.`,
   persona:{Alice:"Alice · knows a bit about technology", Bob:"Bob · not technical, prefers everyday language"},
   brand:"Smart office study", next:"Continue", back:"Back", missing:"Please answer all questions to continue.",
@@ -381,9 +384,9 @@ const T = {
   techbg:"Do you have a technical background (e.g. computer science, engineering)?", yesno:["Yes","No"],
   office_h:"The smart office",
   office_p:"This is the office where Alice and Bob work. It has a meeting room. From the outside you can't see whether someone is inside, so there is a status light above the meeting-room door. Its colour is set automatically by the smart office system, which follows a set of rules.",
-  office_p2:"The rules in this office were created by different people. Some rules can apply at the same time. Also, different rules can have the same result: more than one rule can turn the light orange. That is also why the status light can be confusing.",
+  office_p2:"The rules in this office were created by different people. Multiple rules can apply at the same time. Also, different rules can have the same result: more than one rule can turn the light orange. That is also why the status light can be confusing.",
   smartex_h:"SmartEx, the explanation assistant",
-  smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that you don't understand, you can ask SmartEx about it.",
+  smartex_p:"SmartEx is an explanation assistant that belongs to the smart office system. When something happens in the office that Alice or Bob don't understand, they can ask SmartEx about it.",
   dev_h:"The smart devices", dev_p:"Click each highlighted device to see what it does. When you have looked at all seven, you can continue.",
   dev_seen:"seen", show_rules:"Show rules",
   dev:{
@@ -395,7 +398,7 @@ const T = {
    smoke:["Smoke and CO₂ detector","This detector senses smoke or too much carbon dioxide (CO₂)."],
    fan:["Ventilation fan","The ventilation fan used in the meeting room."]},
   labels:{room:"Meeting room", forecast:"Forecast", motion:"motion sensor", hours:"Office hours: 08:00–18:00", lunch:"Lunchtime: 11:00–13:00", closing:"Closing time: 18:00–23:00"},
-  rules_h:"The office rules", rules_p:"The status light follows these rules. Read each rule from top to bottom. Several rules can be true at the same time.",
+  rules_h:"The office rules", rules_p:"The status light follows these rules. Read each rule from top to bottom.",
   rules_unclear:"Some rules may seem confusing or overlap. That is normal – just do your best.",
   k_when:"Starts when", k_only:"Only if", k_then:"Result", then_tpl:(c,x)=>`The status light turns ${c}${x}.`, then_off:x=>`The status light turns off${x}.`,
   people_h:"Alice and Bob", people_p:"In each situation, Alice or Bob asks SmartEx something. Keep in mind who is asking.",
@@ -411,20 +414,20 @@ const T = {
   ask_h:"Ask SmartEx", 
   st:{time:"Time", weather:"Weather", rain:"Rain", sun:"Sunny", door:"Meeting-room door", crack:"slightly open", closed:"closed", light:"Status light", green:"green", orange:"orange", blue:"blue", off:"off"},
   ask_btn:(p,q)=>`${p} asks SmartEx: “${q}”`, bot:"SmartEx",
-  bot_back:"Before I answer: which colour did you expect the status light to show instead?",
-  bot_rules:"And why? Which rules did you expect to be responsible? Pick the two you expected most.",
+  bot_back:p=>`Before SmartEx answers, it wants to know: which colour did ${p} expect the status light to show instead?`,
+  bot_rules:p=>`SmartEx also wants to know which rules ${p} expected to be responsible. Pick the two you think ${p} expected most.`,
   rank_help:p=>`Drag the two rules you think ${p} expected most onto places 1 and 2 (or tap a rule, then tap a place). Place 1 = the rule ${p} expected most. The other rules can stay where they are. Rules marked “Created by ${p}” are ${p}'s own rules. Details on each rule are in the office note.`,
   top:"expected most", bottom:"expected second most", pool_lbl:"All rules", pool_empty:"", slots_lbl:p=>`The two rules ${p} expected most`,
   your_rule:p=>`Created by ${p}`,
   lock:"Lock in my order", locked:"Your order is locked in.", lock_first:"Please lock in your order to continue.",
-  bot_thanks:"Thank you! On the next page you will see my explanation.",
+  bot_thanks:p=>`Thanks! On the next page you will see SmartEx's explanations for ${p}.`,
   rate_h:"Rate the explanations",
   rate_p:(n,p)=>n===3 ? `Here are three explanations from SmartEx for ${p}'s question. Please read all three carefully and rate each one.` : `Here are two explanations from SmartEx for ${p}'s question. Please read both carefully and rate each one.`,
   your_q:p=>`${p}'s question`, expl:"Explanation", pref:p=>`Which explanation is best for ${p}?`,
   lik_items:p=>[["underst",`This explanation is easy for ${p} to understand.`],["helpful",`This explanation is helpful for ${p}.`]],
   lik_scale:["1 = strongly disagree","5 = strongly agree"],
   mcq_h:"Your understanding",
-  final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)",
+  final_h:"Almost done", fb1:"Was anything unclear? (optional)", fb2:"What would make SmartEx's explanations better? (optional)", fb3:"Is there anything else you would like to add? (optional)",
   attn:"To show you are reading carefully, please choose “Blue”.", attn_o:["Green","Orange","Blue","Off"],
   end_h:"Thank you!", end_p:"You have finished the study. Your answers help to make smart offices easier to understand.",
   gate_h:"Please start the study here", gate_p:"This study starts with a short questionnaire in LimeSurvey. From there, you will be forwarded to this page automatically.", gate_btn:"Go to the questionnaire",
@@ -446,10 +449,12 @@ const T = {
    people:["Lies, wer Alice und Bob sind. Später bewertest du Erklärungen für sie."],
    quiz:["Beantworte die 3 Fragen. Die richtige Antwort siehst du sofort."],
    story:["Lies die Situation aufmerksam. Achte darauf, um wen es geht."],
-   rank:p=>["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf.",`Wähle die Farbe, die ${p} deiner Meinung nach stattdessen erwartet hat, und lege dann die zwei Regeln ab, die ${p} deiner Meinung nach am meisten erwartet hat.`,"Klicke auf „Reihenfolge festlegen“."],
+   rank:["Schau dir das Bild vom Büro an.","Klicke auf den Frage-Knopf."],
+   rank_asked:p=>[`Wähle die Farbe, die ${p} deiner Meinung nach stattdessen erwartet hat.`,`Lege die zwei Regeln, die ${p} deiner Meinung nach am meisten erwartet hat, auf Platz 1 und 2.`,"Klicke auf „Reihenfolge festlegen“."],
+   rank_locked:["Klicke auf „Weiter“, um die Erklärungen von SmartEx zu sehen."],
    rate2:p=>["Lies beide Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
    rate:p=>["Lies alle drei Erklärungen.","Bewerte jede anhand der zwei Aussagen (1 = stimme gar nicht zu, 5 = stimme voll zu).",`Wähle die Erklärung, die für ${p} am besten ist.`,"Beantworte die Frage unten."],
-   final:["Beantworte die Kontrollfrage. Die beiden Feedback-Fragen sind freiwillig."]},
+   final:["Beantworte die Kontrollfrage. Die Feedback-Fragen sind freiwillig."]},
   rate_note:who=>`Bitte bewerte jede Erklärung mit Blick auf ${who}. ${who==="Bob" ? "Bob ist nicht technisch und mag kurze Erklärungen in einfacher Alltagssprache." : "Alice kennt sich ein bisschen mit Technik aus."} Die Erklärungen wurden automatisch erstellt. Manche sind vielleicht unklar oder nicht ganz richtig.`,
   persona:{Alice:"Alice · kennt sich ein bisschen mit Technik aus", Bob:"Bob · nicht technisch, mag einfache Alltagssprache"},
   brand:"Studie: Smartes Büro", next:"Weiter", back:"Zurück", missing:"Bitte beantworte alle Fragen, um fortzufahren.",
@@ -463,9 +468,9 @@ const T = {
   techbg:"Hast du einen technischen Hintergrund (z. B. Informatik, Ingenieurwesen)?", yesno:["Ja","Nein"],
   office_h:"Das smarte Büro",
   office_p:"Das ist das Büro, in dem Alice und Bob arbeiten. Es hat einen Besprechungsraum. Von außen sieht man nicht, ob jemand drin ist, deshalb gibt es über der Tür ein Statuslicht. Seine Farbe setzt das Smart-Office-System automatisch – nach bestimmten Regeln.",
-  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt. Manche Regeln können gleichzeitig gelten. Außerdem können verschiedene Regeln dasselbe bewirken: Mehr als eine Regel kann das Licht orange schalten. Auch deshalb kann das Statuslicht verwirrend sein.",
+  office_p2:"Die Regeln in diesem Büro wurden von verschiedenen Personen erstellt. Mehrere Regeln können gleichzeitig gelten. Außerdem können verschiedene Regeln dasselbe bewirken: Mehr als eine Regel kann das Licht orange schalten. Auch deshalb kann das Statuslicht verwirrend sein.",
   smartex_h:"SmartEx, der Erklär-Assistent",
-  smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das du nicht verstehst, kannst du SmartEx dazu fragen.",
+  smartex_p:"SmartEx ist ein Erklär-Assistent, der zum Smart-Office-System gehört. Wenn im Büro etwas passiert, das Alice oder Bob nicht verstehen, können sie SmartEx dazu fragen.",
   dev_h:"Die smarten Geräte", dev_p:"Klicke auf jedes markierte Gerät, um zu sehen, was es macht. Wenn du dir alle sieben angesehen hast, geht es weiter.",
   dev_seen:"gesehen", show_rules:"Regeln zeigen",
   dev:{
@@ -477,7 +482,7 @@ const T = {
    smoke:["Rauch- und CO₂-Melder","Dieser Melder erkennt Rauch oder zu viel Kohlendioxid (CO₂)."],
    fan:["Lüfter","Der Lüfter im Besprechungsraum."]},
   labels:{room:"Besprechungsraum", forecast:"Vorhersage", motion:"Bewegungsmelder", hours:"Bürozeiten: 08:00–18:00", lunch:"Mittagszeit: 11:00–13:00", closing:"Feierabend: 18:00–23:00"},
-  rules_h:"Die Regeln im Büro", rules_p:"Das Statuslicht folgt diesen Regeln. Lies jede Regel von oben nach unten. Mehrere Regeln können gleichzeitig zutreffen.",
+  rules_h:"Die Regeln im Büro", rules_p:"Das Statuslicht folgt diesen Regeln. Lies jede Regel von oben nach unten.",
   rules_unclear:"Manche Regeln wirken vielleicht verwirrend oder überschneiden sich. Das ist normal – mach es einfach so gut du kannst.",
   k_when:"Startet, wenn", k_only:"Nur wenn", k_then:"Ergebnis", then_tpl:(c,x)=>`Das Statuslicht wird ${c}${x}.`, then_off:x=>`Das Statuslicht geht aus${x}.`,
   people_h:"Alice und Bob", people_p:"In jeder Situation fragt Alice oder Bob SmartEx etwas. Achte darauf, wer fragt.",
@@ -493,20 +498,20 @@ const T = {
   ask_h:"Frag SmartEx",
   st:{time:"Uhrzeit", weather:"Wetter", rain:"Regen", sun:"Sonnig", door:"Tür Besprechungsraum", crack:"einen Spalt offen", closed:"zu", light:"Statuslicht", green:"grün", orange:"orange", blue:"blau", off:"aus"},
   ask_btn:(p,q)=>`${p} fragt SmartEx: „${q}“`, bot:"SmartEx",
-  bot_back:"Bevor ich antworte: Welche Farbe hättest du stattdessen beim Statuslicht erwartet?",
-  bot_rules:"Und warum? Welche Regeln hast du dafür erwartet? Wähle die zwei, die du am meisten erwartet hast.",
+  bot_back:p=>`Bevor SmartEx antwortet, möchte es wissen: Welche Farbe hat ${p} stattdessen beim Statuslicht erwartet?`,
+  bot_rules:p=>`SmartEx möchte auch wissen, welche Regeln ${p} dafür erwartet hat. Wähle die zwei, die ${p} deiner Meinung nach am meisten erwartet hat.`,
   rank_help:p=>`Ziehe die zwei Regeln, die ${p} deiner Meinung nach am meisten erwartet hat, auf Platz 1 und 2 (oder tippe eine Regel an und dann einen Platz). Platz 1 = die Regel, die ${p} am meisten erwartet hat. Die übrigen Regeln können liegen bleiben. Regeln mit „Erstellt von ${p}“ hat ${p} selbst angelegt. Details zu jeder Regel findest du in der Büronotiz.`,
   top:"am meisten erwartet", bottom:"am zweitmeisten erwartet", pool_lbl:"Alle Regeln", pool_empty:"", slots_lbl:p=>`Die zwei Regeln, die ${p} am meisten erwartet hat`,
   your_rule:p=>`Erstellt von ${p}`,
   lock:"Reihenfolge festlegen", locked:"Deine Reihenfolge ist festgelegt.", lock_first:"Bitte lege deine Reihenfolge fest, um weiterzumachen.",
-  bot_thanks:"Danke! Auf der nächsten Seite siehst du meine Erklärung.",
+  bot_thanks:p=>`Danke! Auf der nächsten Seite siehst du die Erklärungen von SmartEx für ${p}.`,
   rate_h:"Bewerte die Erklärungen",
   rate_p:(n,p)=>n===3 ? `Hier sind drei Erklärungen von SmartEx zur Frage von ${p}. Bitte lies alle drei aufmerksam und bewerte jede einzeln.` : `Hier sind zwei Erklärungen von SmartEx zur Frage von ${p}. Bitte lies beide aufmerksam und bewerte jede einzeln.`,
   your_q:p=>`Frage von ${p}`, expl:"Erklärung", pref:p=>`Welche Erklärung ist für ${p} am besten?`,
   lik_items:p=>[["underst",`Diese Erklärung ist für ${p} leicht zu verstehen.`],["helpful",`Diese Erklärung ist für ${p} hilfreich.`]],
   lik_scale:["1 = stimme gar nicht zu","5 = stimme voll zu"],
   mcq_h:"Dein Verständnis",
-  final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)",
+  final_h:"Fast geschafft", fb1:"War etwas unklar? (optional)", fb2:"Was würde die Erklärungen von SmartEx besser machen? (optional)", fb3:"Möchtest du sonst noch etwas anmerken? (optional)",
   attn:"Um zu zeigen, dass du aufmerksam liest, wähle bitte „Blau“.", attn_o:["Grün","Orange","Blau","Aus"],
   end_h:"Vielen Dank!", end_p:"Du hast die Studie abgeschlossen. Deine Antworten helfen, smarte Büros verständlicher zu machen.",
   gate_h:"Bitte starte die Studie hier", gate_p:"Die Studie beginnt mit einem kurzen Fragebogen in LimeSurvey. Von dort wirst du automatisch auf diese Seite weitergeleitet.", gate_btn:"Zum Fragebogen",
@@ -729,7 +734,7 @@ ${nav(true)}`; },
 </div>`:""}
    <p class="muted">${DATA.tutorial.seen.length} / 7 ${t().dev_seen}</p>${nav(DATA.tutorial.seen.length===7)}`; },
  rules(){ return `<h2>${t().rules_h}</h2>${taskBox("rules")}<p>${t().rules_p}</p><p class="muted">${t().office_p2}</p><p class="muted">${t().rules_unclear}</p>
-   <div class="grid">${Object.keys(RULES).map(id=>`<div class="card rule" style="--c:${LIGHT[RULES[id].c]}">${ruleBlock(id)}</div>`).join("")}</div>${nav(true)}`; },
+   <div class="grid">${Object.keys(RULES).map(id=>`<div class="card rule" style="--c:${LIGHT[RULES[id].c]}">${ruleBlock(id)}<div class="own">${t().n_owner}: <b>${RULES[id].owner}</b></div></div>`).join("")}</div>${nav(true)}`; },
  people(){ return `<h2>${t().people_h}</h2>${taskBox("people")}<p>${t().people_p}</p><div class="stack">
    <div class="card person">${avatar("Alice")}<div><b>Alice</b><div>${t().alice}</div></div></div>
    <div class="card person">${avatar("Bob")}<div><b>Bob</b><div>${t().bob}</div></div></div></div>${nav(true)}`; },
@@ -743,7 +748,8 @@ ${nav(true)}`; },
    return `<h2>${t().final_h}</h2>${taskBox("final")}
    <fieldset><legend>${t().attn}</legend>${radios("attn",t().attn_o,f.attention,["green","orange","blue","off"])}</fieldset>
    <fieldset><legend>${t().fb1}</legend><textarea id="fb1" rows="3">${esc(f.unclear||"")}</textarea></fieldset>
-   <fieldset><legend>${t().fb2}</legend><textarea id="fb2" rows="3">${esc(f.improve||"")}</textarea></fieldset>${nav(true)}`; },
+   <fieldset><legend>${t().fb2}</legend><textarea id="fb2" rows="3">${esc(f.improve||"")}</textarea></fieldset>
+   <fieldset><legend>${t().fb3}</legend><textarea id="fb3" rows="3">${esc(f.other||"")}</textarea></fieldset>${nav(true)}`; },
  end(){ return `<h1>${t().end_h}</h1><p>${t().end_p}</p><p class="muted" id="savestate">…</p>
    ${SETTINGS.SURVEY_RETURN_URL?`<a class="btn" href="${esc(SETTINGS.SURVEY_RETURN_URL)}${SETTINGS.SURVEY_RETURN_URL.includes("?")?"&":"?"}pid=${pid}">${t().cont_survey}</a>`:""}
    ${SETTINGS.TEST_MODE?`<details class="debug"><summary>${t().debug}</summary><pre>${esc(JSON.stringify(DATA,null,2))}</pre></details>`:""}`; },
@@ -774,10 +780,10 @@ function rankScreen(tc){
   else {
     const allPlaced = d.slots.every(Boolean) && !!d.colour;
     chat += `<div class="msg me"><span class="who">${s.person}</span>${esc(s.ask[lang])}</div>
-      <div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${tt.bot_back}</b>
+      <div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${esc(tt.bot_back(s.person))}</b>
       <div class="seg" role="group" style="margin-top:8px">${["green","orange","blue","off"].filter(c=>c!==s.light).map(c=>`<button type="button" data-colour="${c}" aria-pressed="${d.colour===c}" ${d.locked?"disabled":""}><span class="swatch" style="background:${LIGHT[c]}"></span> ${tt.st[c]}</button>`).join("")}</div>
       </div>
-      ${d.colour?`<div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${tt.bot_rules}</b>
+      ${d.colour?`<div class="msg bot" style="max-width:100%;width:100%"><span class="who">${tt.bot}</span><b>${esc(tt.bot_rules(s.person))}</b>
       ${d.locked?"":`<p class="muted" style="margin:.4em 0 0;font-size:15px">${esc(tt.rank_help(s.person))}</p>`}
       <div class="rank-area ${d.locked?"locked":""}">
         ${d.locked?"":`<div class="zone-lbl">${tt.pool_lbl}</div><div class="pool ${d.pool.length?"":"empty"}" data-pool="1" data-empty="${esc(tt.pool_empty)}">${d.pool.map(id=>tile(tc,id,false)).join("")}</div>`}
@@ -786,10 +792,10 @@ function rankScreen(tc){
           ${i===0?`<span class="cap">${tt.top}</span>`:i===n-1?`<span class="cap">${tt.bottom}</span>`:""}</li>`).join("")}</ol>
       </div>
       ${d.locked?`<div class="lockmsg">${tt.locked}</div>`:`<button type="button" class="btn" id="lock" style="margin-top:12px" ${allPlaced?"":"disabled"}>${tt.lock}</button>`}</div>`:""}`;
-    if (d.locked) chat += `<div class="msg bot"><span class="who">${tt.bot}</span>${tt.bot_thanks}</div>`;
+    if (d.locked) chat += `<div class="msg bot"><span class="who">${tt.bot}</span>${esc(tt.bot_thanks(s.person))}</div>`;
   }
   chat += `</div>`;
-  return `<p class="sitbadge">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>${personaTag(s.person)}${taskBox("rank", null, null, s.person)}
+  return `<p class="sitbadge">${tt.sit(sitNo(tc))}</p><h2>${tt.ask_h}</h2>${personaTag(s.person)}${taskBox(d.locked ? "rank_locked" : d.asked ? "rank_asked" : "rank", null, null, s.person)}
     <div class="scene">${officeSVG(s)}</div>${statusChips(s)}${chat}${nav(d.locked)}`;
 }
 const sides = tc => DATA.ab[tc].C ? ["A","B","C"] : ["A","B"];   // explanation labels shown for this situation
@@ -957,6 +963,7 @@ app.addEventListener("change", e=>{
 app.addEventListener("input", e=>{
   if (e.target.id==="fb1") DATA.final.unclear = e.target.value;
   if (e.target.id==="fb2") DATA.final.improve = e.target.value;
+  if (e.target.id==="fb3") DATA.final.other = e.target.value;
 });
 document.querySelectorAll(".lang button").forEach(b=>b.addEventListener("click",()=>{
   lang = b.dataset.lang; (DATA.lang_switches ||= []).push({to:lang, screen:SCREENS[idx]}); render(); persist();
@@ -978,7 +985,7 @@ function summary(){
     age: DATA.about.age||"", smarthome_familiarity: DATA.about.tech||"", tech_background: DATA.about.techbg||"",
     quiz_correct: Object.values(DATA.quiz).filter(q=>q.correct).length,
     notes_opens: DATA.notes_opens.length, attention_passed: DATA.final.attention_passed ?? "",
-    feedback_unclear: DATA.final.unclear||"", feedback_improve: DATA.final.improve||""};
+    feedback_unclear: DATA.final.unclear||"", feedback_improve: DATA.final.improve||"", feedback_other: DATA.final.other||""};
   for (const tc of ["TC1","TC2","TC3"]){
     const r = DATA.rank[tc], q = DATA.rate[tc], ab = DATA.ab[tc];
     o[`${tc}_rank_locked`] = r.locked_order ? r.locked_order.join(" > ") : "";
