@@ -6,7 +6,7 @@ The whole study is **one web page** (`index.html`). Participants do not play a r
 
 **Study link:** https://mgobsch.github.io/thesis-study/
 **Preview link (nothing is saved):** https://mgobsch.github.io/thesis-study/?preview=1
-**LimeSurvey (part 1, optional):** https://survey.uni-koeln.de/index.php/326863
+**LimeSurvey (part 1, optional):** https://survey.uni-koeln.de/index.php/326863?
 
 ---
 
@@ -31,7 +31,7 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 
 1. **Welcome and consent** *(standalone mode only)*
 2. **About you:** age, familiarity with smart devices, technical background *(standalone mode only)*
-3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx. A yellow note above the clock (and the "Times" section of the office note) shows office hours 08:00–18:00, lunchtime 11:00–13:00 and closing time 18:00–23:00
+3. **The smart office:** the meeting room, the status light, the smart office system and SmartEx (the note that the rules were created by different people comes later, on the rules page). A yellow note above the clock (and the "Times" section of the office note) shows office hours 08:00–18:00, lunchtime 11:00–13:00 and closing time 18:00–23:00
 4. **The smart devices:** click on 7 devices (door sensor, motion sensor, status light, forecast, clock, smoke/CO₂ detector, fan)
 5. **The office rules:** all 6 rules that change the status light, each with its owner ("Created by: Alice/Bob"), with a note that some rules may seem confusing and that this is normal. From here on, the yellow **office note** is available. It starts closed (a tab at the edge) and a red hint shows where to open it. In the office note, each rule is a card with a coloured stripe (the light colour), like on the rules page.
 6. **Alice and Bob:** the two employees and their technical level. In each situation, one of them asks SmartEx something.
@@ -39,8 +39,8 @@ About 15–20 minutes, in English or German (switch at the top right). Every scr
 8. **Three situations (random order),** each with three steps:
    - **Story:** what Alice or Bob sees at that moment (third person)
    - **Ask SmartEx:** Alice/Bob asks SmartEx. The participant first chooses **which colour they think Alice/Bob expected** instead, then places the **two rules they think Alice/Bob expected most** (all rules except the one that is currently active) on places 1 and 2, and locks them in. Rules the person created carry a **"Created by Alice" / "Created by Bob"** tag as a hint.
-   - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"This explanation is easy for Alice to understand"*, *"This explanation is helpful for Alice"*), then **which explanation is best for Alice/Bob** and a comprehension question.
-9. **Final questions:** attention check and three optional feedback boxes (anything unclear, what would make the explanations better, anything else)
+   - **Rate the explanations:** two or three explanations (A, B, C), each rated **with Alice/Bob in mind** (Alice: knows a bit about technology; Bob: not technical, prefers short, everyday language): two statements on a 1–5 scale (*"This explanation is easy for Alice to understand"*, *"This explanation is helpful for Alice"*), then **which explanation is best for Alice/Bob** and a comprehension question. Above the explanations, a short note says that they do not always compare with the same alternative (e.g. "not green" vs. "not blue").
+9. **Final questions:** three optional feedback boxes (anything unclear, what would make the explanations better, anything else). The attention check is part of LimeSurvey, not of this page.
 10. **End:** answers are sent to the Google Sheet
 
 ### The three situations
@@ -149,7 +149,6 @@ To analyse in Excel: Google Sheet → **File → Download → Microsoft Excel (.
 | `age`, `smarthome_familiarity`, `tech_background` | only in standalone mode (in LimeSurvey mode, this is in LimeSurvey) |
 | `quiz_correct` | correct answers in the quick check (0–3) |
 | `feedback_unclear`, `feedback_improve`, `feedback_other` | the three optional feedback boxes |
-| `attention_passed` | attention check passed (TRUE/FALSE) |
 | `TC1_expected_colour` | colour the participant expected instead (green, orange, blue, off) |
 | `TC1_rank_locked` | the two rules placed, e.g. "notoccupied > rain" |
 | `TC1_rank_first` | the rule placed first (the expected foil) |
@@ -185,7 +184,7 @@ The page measures the time on each screen and adds warning flags to every row. *
 | `pointer_moves` | number of mouse/touch/scroll events |
 | `bot_score` | number of flags that apply (0 = unremarkable) |
 
-Decide before data collection which rule leads to exclusion (for example: attention check failed or `bot_score` ≥ 2) and report it in the method section.
+Decide before data collection which rule leads to exclusion (for example: attention check in LimeSurvey failed or `bot_score` ≥ 2) and report it in the method section.
 
 ---
 
@@ -236,7 +235,7 @@ All content is in clearly marked blocks at the top of the `<script>` part of `in
 - [ ] Test rows deleted from both tabs (keep the header row)
 - [ ] `TEST_MODE` set to `false`
 - [ ] Data protection and consent text checked with the supervisor
-- [ ] Exclusion rule decided (attention check, `bot_score`)
+- [ ] Exclusion rule decided (attention check in LimeSurvey, `bot_score`)
 - [ ] Pilot with 1–2 people, feedback included
 - [ ] Link sent, with the note: laptop or PC, Chrome, Firefox, Safari or Edge (not Brave / ad blockers)
 
