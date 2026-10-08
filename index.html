@@ -231,10 +231,10 @@ const SETTINGS = {
   //   only starts when a code is present. false = the page runs on its own (consent + "About you" included).
   // Preview: click through freely, nothing is saved, no answers required. Also via the link ?preview=1
   PREVIEW_MODE: false,
-  LIMESURVEY_MODE: false,
-  LIMESURVEY_URL: "https://survey.uni-koeln.de/index.php/326863?lang=de",
+  LIMESURVEY_MODE: true,
+  LIMESURVEY_URL: "https://survey.uni-koeln.de/index.php/326863",
   // Quality / bot checks (only mark answers in the sheet, nobody is excluded automatically)
-  MIN_TOTAL_MINUTES: 5,     // faster than this for the whole study -> flag_too_fast
+  MIN_TOTAL_MINUTES: 3,     // faster than this for the whole study -> flag_too_fast
   READING_WPM: 300,         // a rating page faster than reading all its explanations at this speed -> flag_too_fast
 };
 
